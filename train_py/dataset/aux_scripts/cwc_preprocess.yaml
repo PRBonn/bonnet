@@ -1,0 +1,14 @@
+# dataset cfg file
+string_map:             # monochromatic map
+  0: "soil"
+  128: "weed"
+  255: "plant"
+color_map:            # bgr chained with "_"
+  0: [0, 0, 0]        # soil
+  128: [0, 0, 255]    # weed
+  255: [0, 255, 0]    # plant
+split: [80,20,0]
+camera:
+  image_height: 966
+  image_width: 1296
+  channels: 3

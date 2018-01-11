@@ -1,0 +1,5 @@
+model_path: "/cache/frozen_model/"
+model: "frozen_nchw"
+device: "/gpu:0"
+verbose: false
+backend: "trt"

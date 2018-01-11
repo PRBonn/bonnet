@@ -1,0 +1,50 @@
+# dataset cfg file
+name: "general"
+data_dir: "/cache/datasets/synthia/split"
+buff: True            # if this is true we buffer buff_n images in a fifo
+buff_nr: 100          # number of images to keep in fifo (prefetch batch) <-should be bigger than batch size to make sense
+label_map: 
+  0: "void"
+  20: "Sky"
+  40: "Building"
+  60: "Road"
+  80: "Sidewalk"
+  100: "Fence"
+  120: "Vegetation"
+  140: "Pole"
+  160: "Car"
+  180: "Sign"
+  200: "Pedestrian"
+  220: "Cyclist"
+label_remap:          # for softmax (it must be an index of the onehot array)
+  0: 0
+  20: 1
+  40: 2
+  60: 3
+  80: 4
+  100: 5
+  120: 6
+  140: 7
+  160: 8
+  180: 9
+  200: 10
+  220: 11
+color_map:            # bgr
+  0: [0,0,0]
+  20: [128,128,128]
+  40: [0,0,128]
+  60: [128,64,128]
+  80: [192,0,0]
+  100: [128,64,64]
+  120: [0,128,128]
+  140: [128,192,192]
+  160: [128,0,64]
+  180: [128,128,192]
+  200: [0,64,64]
+  220: [192,128,0]
+img_prop:
+  width: 512
+  height: 384
+  depth: 3            # number of channels in original image
+force_resize: True    # if dataset contains images of different size, it should be True
+force_remap: False

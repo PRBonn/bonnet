@@ -1,0 +1,6 @@
+# cpp cmake build stuff
+**/build/*
+
+# sublime project
+**.sublime-project
+**.sublime-workspace

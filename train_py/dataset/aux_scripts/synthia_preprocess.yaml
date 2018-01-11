@@ -1,0 +1,32 @@
+# dataset cfg file
+string_map:             # monochromatic map
+  0: "void"
+  20: "Sky"
+  40: "Building"
+  60: "Road"
+  80: "Sidewalk"
+  100: "Fence"
+  120: "Vegetation"
+  140: "Pole"
+  160: "Car"
+  180: "Sign"
+  200: "Pedestrian"
+  220: "Cyclist"
+color_map: #bgr
+  0: [0,0,0]
+  20: [128,128,128]
+  40: [0,0,128]
+  60: [128,64,128]
+  80: [192,0,0]
+  100: [128,64,64]
+  120: [0,128,128]
+  140: [128,192,192]
+  160: [128,0,64]
+  180: [128,128,192]
+  200: [0,64,64]
+  220: [192,128,0]
+split: [80,10,10]
+camera:
+  image_height: 720
+  image_width: 960
+  channels: 3

@@ -1,0 +1,7 @@
+# inputs
+image_topic: /left/image_raw
+
+# outputs
+bgr_topic: /bonnet/bgr
+mask_topic: /bonnet/mask
+color_mask_topic: /bonnet/color_mask

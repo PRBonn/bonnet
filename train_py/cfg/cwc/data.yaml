@@ -1,0 +1,23 @@
+# dataset cfg file
+name: "general"
+data_dir: "/cache/datasets/cwc/dataset"
+buff: True            # if this is true we buffer buff_n images in a fifo
+buff_nr: 100          # number of images to keep in fifo (prefetch batch) <-should be bigger than batch size to make sense
+label_map: 
+  0: "soil"
+  128: "weed"
+  255: "plant"
+label_remap:          # for softmax (it must be an index of the onehot array)
+  0: 0
+  128: 1
+  255: 2
+color_map:            # bgr
+  0: [0, 0, 0]        # soil
+  128: [0, 0, 255]    # weed
+  255: [0, 255, 0]    # plant
+img_prop:
+  width: 512
+  height: 384
+  depth: 3            # number of channels in original image
+force_resize: True    # if dataset contains images of different size, it should be True
+force_remap: False    # if I want to clean the remap folder (for example, if I changed the image size)
