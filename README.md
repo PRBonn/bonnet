@@ -1,5 +1,7 @@
 # Bonnet: Tensorflow Convolutional Semantic Segmentation pipeline
 
+[![Build Status](https://travis-ci.org/Photogrammetry-Robotics-Bonn/bonnet.svg?branch=master)](https://travis-ci.org/Photogrammetry-Robotics-Bonn/bonnet)
+
 By [Andres Milioto](http://www.ipb.uni-bonn.de/people/andres-milioto/) @ University of Bonn.
 
 ![Image of cityscapes](https://image.ibb.co/i5tEQR/CITY.png)
@@ -144,7 +146,6 @@ framework :)
 
 ## TODOs
 
-- Docker CI for github (gitlab done)
 - Merge [Crop-weed CNN with background knowledge](https://arxiv.org/pdf/1709.06764.pdf) into this repo.
 - Make multi-camera ROS node that exploits batching to make inference faster than sequentially.
 - Movidius Neural Stick C++ backends (plus others as they become available).
