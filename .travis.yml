@@ -1,0 +1,8 @@
+services:
+  - docker
+
+before_script:
+  - docker pull tano297/bonnet:cuda9-cudnn7
+
+script:
+  - docker run -it  -v ${PWD}:/bonnet/ tano297/bonnet:cuda9-cudnn7 /bin/bash -c "/bonnet/test.sh"
