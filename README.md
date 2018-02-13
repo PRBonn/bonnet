@@ -78,14 +78,14 @@ If you don't have GPUs and the task is interesting for robots to exploit, I will
 gladly train it whenever I have some free GPU time in our servers.
 
 - Cityscapes (512x256px):
-  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/cityscapes_erf.tar.gz)
-  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/cityscapes_uerf.tar.gz)
+  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cityscapes_erf.tar.gz)
+  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cityscapes_uerf.tar.gz)
 - Synthia (512x384px):
-  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/synthia_erf.tar.gz)
-  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/synthia_uerf.tar.gz)
+  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/synthia_erf.tar.gz)
+  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/synthia_uerf.tar.gz)
 - Crop-Weed (CWC) (512x384px):
-  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/cwc_erf.tar.gz)
-  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/cwc_uerf.tar.gz)
+  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cwc_erf.tar.gz)
+  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cwc_uerf.tar.gz)
 
 ## License
 
