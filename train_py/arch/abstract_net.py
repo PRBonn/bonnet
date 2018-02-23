@@ -604,7 +604,7 @@ class AbstractNetwork:
     # return the single feature map as 3D numpy array
     return infered_code[0]
 
-  def predict_dataset(self, datadir, path, batchsize=1):
+  def predict_dataset(self, datadir, path, batchsize=1, ignore_last=False):
     ''' Test accuracy in an entire dataset. Also kickstarts the session if needed
     '''
     if self.sess is None:
@@ -626,13 +626,13 @@ class AbstractNetwork:
 
     # run the classifier in each split of dataset
     print("Train data")
-    self.dataset_accuracy(self.dataset.train, batchsize)
+    self.dataset_accuracy(self.dataset.train, batchsize, ignore_last)
     print("//////////\n\n")
     print("Validation data")
-    self.dataset_accuracy(self.dataset.validation, batchsize)
+    self.dataset_accuracy(self.dataset.validation, batchsize, ignore_last)
     print("//////////\n\n")
     print("Test data")
-    self.dataset_accuracy(self.dataset.test, batchsize)
+    self.dataset_accuracy(self.dataset.test, batchsize, ignore_last)
 
     return
 
@@ -785,7 +785,7 @@ class AbstractNetwork:
 
     return mean_acc, mean_iou, per_class_iou, per_class_prec, per_class_rec, obj_acc, obj_prec, obj_rec
 
-  def dataset_accuracy(self, dataset, batch_size):
+  def dataset_accuracy(self, dataset, batch_size, ignore_last=False):
     ''' Slower metrics using numpy confusion matrix, and reporting estimate
         objectwise metrics, for testing
     '''
@@ -841,10 +841,14 @@ class AbstractNetwork:
                         np.concatenate((img, color_mask, color_label), axis=1))
 
     # calculate pixelwise metrics  histogram
+    if ignore_last:
+      pix_hist = pix_hist[:-1, :-1]
     mean_acc, mean_iou, per_class_iou, per_class_prec, per_class_rec = self.pix_acc_from_histogram(
         pix_hist)
 
     # calculate objectwise metrics from histogram
+    if ignore_last:
+      obj_hist = obj_hist[:-1, :-1]
     obj_acc, obj_prec, obj_rec = self.obj_acc_from_histogram(obj_hist)
 
     overall_duration = time.time() - start_time_overall  # calculate time elapsed
@@ -876,7 +880,8 @@ class AbstractNetwork:
 
     return mean_acc, mean_iou, per_class_iou, per_class_prec, per_class_rec
 
-  def training_dataset_accuracy(self, dataset, batch_size, batch_size_gpu):
+  def training_dataset_accuracy(self, dataset, batch_size, batch_size_gpu,
+                                ignore_last=False):
     ''' Faster tensorflow metrics using tensorflow confusion matrix,
         for training
     '''
@@ -913,11 +918,14 @@ class AbstractNetwork:
           proper_w = self.DATA["img_prop"]["width"]
           proper_h = self.DATA["img_prop"]["height"]
           h, w = label.shape
-          if proper_w != w or proper_h != h:
-            label = ad.resize(label, [proper_h, proper_w], neighbor=True)
-            img = ad.resize(img, [proper_h, proper_w])
+
           # save predictions
           if self.TRAIN["save_imgs"]:
+            # resize if proper
+            if proper_w != w or proper_h != h:
+              label = ad.resize(label, [proper_h, proper_w], neighbor=True)
+              img = ad.resize(img, [proper_h, proper_w])
+            # convert to color
             color_mask = util.prediction_to_color(
                 mask, self.DATA["label_remap"], self.DATA["color_map"])
             color_label = util.prediction_to_color(
@@ -928,7 +936,9 @@ class AbstractNetwork:
             cv2.imwrite(path_to_save + dataset.name + '_' + str(name),
                         np.concatenate((img, color_mask, color_label), axis=1))
 
-    # calculate pixelwise metrics  histogram
+    # calculate pixelwise metrics histogram
+    if ignore_last:
+      pix_hist = pix_hist[:-1, :-1]
     mean_acc, mean_iou, per_class_iou, per_class_prec, per_class_rec = self.pix_acc_from_histogram(
         pix_hist)
 
@@ -1093,8 +1103,8 @@ class AbstractNetwork:
                 lbls_flattened = tf.reshape(lbls_resized, [-1])
                 argmax_flattened = tf.reshape(
                     tf.argmax(logits_valid, axis=3), [-1])
-                conf_mat = tf.confusion_matrix(lbls_flattened,
-                                               argmax_flattened,
+                conf_mat = tf.confusion_matrix(argmax_flattened,
+                                               lbls_flattened,
                                                num_classes=self.num_classes,
                                                dtype=tf.float32,
                                                name="confusion_matrix")
@@ -1243,6 +1253,8 @@ class AbstractNetwork:
 
           # write batch iou summary
           pix_h = self.sess.run(self.confusion_matrix, feed_dict=feed_dict)
+          if self.TRAIN["ignore_crap"]:
+            pix_h = pix_h[:-1, :-1]
           mean_acc, mean_iou, _, _, _ = self.pix_acc_from_histogram(pix_h)
           self.sess.run(self.train_batch_iou.assign(mean_iou))
           self.sess.run(self.train_batch_acc.assign(mean_acc))
@@ -1250,15 +1262,18 @@ class AbstractNetwork:
           # Update the events file only if I wont do that later on
           print("Saving summaries")
           self.summary_str = self.sess.run(self.summary, feed_dict=feed_dict)
-          self.summary_writer.add_summary(self.summary_str, self.step)
+          # add_summary takes ints, so x axis in log will be epoch * 1000
+          fake_epoch = int(self.step / float(steps_per_epoch) * 1000)
+          self.summary_writer.add_summary(self.summary_str, fake_epoch)
           self.summary_writer.flush()
 
         # Save a checkpoint and evaluate the model periodically.
         if self.step % acc_report_steps == 0 or (self.step + 1) == max_steps:
           # Evaluate against the training set.
           print('Training Data Eval:')
+          ignore_last = self.TRAIN["ignore_crap"]
           m_acc, m_iou, _, _, _ = self.training_dataset_accuracy(
-              self.dataset.train, self.batch_size, self.batch_size_gpu)
+              self.dataset.train, self.batch_size, self.batch_size_gpu, ignore_last)
           acc_op = self.train_accuracy.assign(m_acc)
           iou_op = self.train_IoU.assign(m_iou)
           self.sess.run([acc_op, iou_op])  # assign the value to the nodes
@@ -1266,7 +1281,7 @@ class AbstractNetwork:
           # Evaluate against the validation set.
           print('Validation Data Eval:')
           m_acc, m_iou, _, _, _ = self.training_dataset_accuracy(
-              self.dataset.validation, self.batch_size, self.batch_size_gpu)
+              self.dataset.validation, self.batch_size, self.batch_size_gpu, ignore_last)
           acc_op = self.validation_accuracy.assign(m_acc)
           iou_op = self.validation_IoU.assign(m_iou)
           self.sess.run([acc_op, iou_op])  # assign the value to the nodes
@@ -1299,14 +1314,16 @@ class AbstractNetwork:
           # Evaluate against the test set.
           print('Test Data Eval:')
           m_acc, m_iou, _, _, _ = self.training_dataset_accuracy(
-              self.dataset.test, self.batch_size, self.batch_size_gpu)
+              self.dataset.test, self.batch_size, self.batch_size_gpu, ignore_last)
           acc_op = self.test_accuracy.assign(m_acc)
           iou_op = self.test_IoU.assign(m_iou)
           self.sess.run([acc_op, iou_op])  # assign the value to the nodes
 
           # summarize
           self.summary_str = self.sess.run(self.summary, feed_dict=feed_dict)
-          self.summary_writer.add_summary(self.summary_str, self.step)
+          # add_summary takes ints, so x axis in log will be epoch * 1000
+          fake_epoch = int(self.step / float(steps_per_epoch) * 1000)
+          self.summary_writer.add_summary(self.summary_str, fake_epoch)
           self.summary_writer.flush()
 
   def placeholders(self, depth, batch_size):
