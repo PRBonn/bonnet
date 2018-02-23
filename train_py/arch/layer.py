@@ -22,6 +22,7 @@
     - Definition of important layers
 '''
 import tensorflow as tf
+import numpy as np
 
 
 def weight_variable(shape, train):
@@ -33,8 +34,9 @@ def weight_variable(shape, train):
 
 def bias_variable(shape, train):
   print("b: ", shape, "Train:", train)
-  return tf.get_variable("b", shape=shape,
-                         initializer=tf.random_normal_initializer,
+  init = tf.constant(np.full(shape, fill_value=0.1), dtype=tf.float32)
+  return tf.get_variable("b",
+                         initializer=init,
                          trainable=train)
 
 
@@ -51,18 +53,18 @@ def conv2d(x, W, stride=1, data_format="NCHW"):
   return output
 
 
-def max_pool(x, stride=2, data_format="NCHW"):
+def max_pool(x, k_size=2, stride=2, data_format="NCHW", pad='SAME'):
   # default to a stride of 2 because it is the one we use the most
   if data_format == "NCHW":
     output = tf.nn.max_pool(x,
-                            ksize=[1, 1, stride, stride],
+                            ksize=[1, 1, k_size, k_size],
                             strides=[1, 1, stride, stride],
-                            padding='SAME', data_format="NCHW")
+                            padding=pad, data_format="NCHW")
   else:
     output = tf.nn.max_pool(x,
-                            ksize=[1, stride, stride, 1],
+                            ksize=[1, k_size, k_size, 1],
                             strides=[1, stride, stride, 1],
-                            padding='SAME', data_format="NHWC")
+                            padding=pad, data_format="NHWC")
   return output
 
 
@@ -78,7 +80,47 @@ def variable_summaries(var):
     tf.summary.scalar('min', tf.reduce_min(var))
     tf.summary.histogram('histogram', var)
 
-# definition for a full conv layer (variables+conv+relu+pool)
+
+def spatial_dropout(x, keep_prob, training, data_format="NCHW"):
+  """
+    Drop random channels, using tf.nn.dropout
+    (Partially from https://stats.stackexchange.com/questions/282282/how-is-spatial-dropout-in-2d-implemented)
+  """
+  if training:
+    with tf.variable_scope("spatial_dropout"):
+      batch_size = x.get_shape().as_list()[0]
+      if data_format == "NCHW":
+        # depth of previous layer feature map
+        prev_depth = x.get_shape().as_list()[1]
+        num_feature_maps = [batch_size, prev_depth]
+      else:
+        # depth of previous layer feature map
+        prev_depth = x.get_shape().as_list()[3]
+        num_feature_maps = [batch_size, prev_depth]
+
+      # get some uniform noise between keep_prob and 1 + keep_prob
+      random_tensor = keep_prob
+      random_tensor += tf.random_uniform(num_feature_maps,
+                                         dtype=x.dtype)
+
+      # if we take the floor of this, we get a binary matrix where
+      # (1-keep_prob)% of the values are 0 and the rest are 1
+      binary_tensor = tf.floor(random_tensor)
+
+      # Reshape to multiply our feature maps by this tensor correctly
+      if data_format == "NCHW":
+        binary_tensor = tf.reshape(binary_tensor,
+                                   [batch_size, prev_depth, 1, 1])
+      else:
+        binary_tensor = tf.reshape(binary_tensor,
+                                   [batch_size, 1, 1, prev_depth])
+
+      # Zero out feature maps where appropriate; scale up to compensate
+      ret = tf.div(x, keep_prob) * binary_tensor
+  else:
+    ret = x
+
+  return ret
 
 
 def conv_layer(input_tensor, kernel_nr, kernel_size, stride,
@@ -131,9 +173,9 @@ def conv_layer(input_tensor, kernel_nr, kernel_size, stride,
 
   if relu:
     with tf.variable_scope('relu'):
-      output = relu = tf.nn.relu(normalized)
-      if summary:
-        variable_summaries(relu)
+      output = relu = tf.nn.leaky_relu(normalized)
+    if summary:
+      variable_summaries(relu)
   else:
     output = normalized
 
@@ -173,6 +215,8 @@ def upsample_layer(input_tensor, train, upsample_factor=2, kernels=-1, data_form
                                                 weights_initializer=tf.variance_scaling_initializer,
                                                 weights_regularizer=None,
                                                 trainable=train)
+  print("W: ", [2, 2, prev_depth, kernel_nr], "Train:", train)
+
   return output
 
 
@@ -191,7 +235,7 @@ def asym_conv_layer(input_tensor, kernel_nr, kernel_size, train, summary=False, 
   """
   with tf.variable_scope('horiz'):
     conv = conv_layer(input_tensor, kernel_nr, [kernel_size, 1], 1, train,
-                      summary=summary, bnorm=bnorm, relu=relu, data_format=data_format)
+                      summary=summary, bnorm=bnorm, relu=False, data_format=data_format)
   with tf.variable_scope('vert'):
     output = conv_layer(conv, kernel_nr, [1, kernel_size], 1, train,
                         summary=summary, bnorm=bnorm, relu=relu, data_format=data_format)
@@ -219,8 +263,19 @@ def uERF_non_bt(input_tensor, kernel_size, train, summary=False, data_format="NC
 
   # batchnorm once
   with tf.variable_scope('non_bt'):
+    # normal assym bottleneck with relus, no batchnorm
+    with tf.variable_scope('asym1'):
+      asym1 = asym_conv_layer(input_tensor, kernel_nr, kernel_size,
+                              train, summary=summary, bnorm=False,
+                              relu=True, data_format=data_format)
+
+    with tf.variable_scope('asym2'):
+      asym2 = asym_conv_layer(asym1, kernel_nr, kernel_size,
+                              train, summary=summary, bnorm=False,
+                              relu=False, data_format=data_format)
+
     with tf.variable_scope('batchnorm'):
-      normalized = tf.contrib.layers.batch_norm(input_tensor,
+      normalized = tf.contrib.layers.batch_norm(asym2,
                                                 center=True, scale=True,
                                                 is_training=train,
                                                 data_format=data_format,
@@ -230,21 +285,13 @@ def uERF_non_bt(input_tensor, kernel_size, train, summary=False, data_format="NC
       if summary:
         variable_summaries(normalized)
 
-    # normal assym bottleneck with relus, no batchnorm
-    with tf.variable_scope('asym1'):
-      asym1 = asym_conv_layer(normalized, kernel_nr, kernel_size,
-                              train, summary=summary, bnorm=False,
-                              relu=True, data_format=data_format)
-
-    with tf.variable_scope('asym2'):
-      asym2 = asym_conv_layer(asym1, kernel_nr, kernel_size,
-                              train, summary=summary, bnorm=False,
-                              relu=True, data_format=data_format)
-
     # add the residual
     with tf.variable_scope('res'):
-      res = input_tensor + asym2
-      output = tf.layers.dropout(res, rate=dropout, training=train)
+      drop = spatial_dropout(normalized, keep_prob=1 - dropout,
+                             training=train, data_format=data_format)
+      with tf.variable_scope('relu'):
+        relu = tf.nn.leaky_relu(input_tensor + drop)
+      output = relu
 
   return output
 
@@ -289,6 +336,114 @@ def uERF_downsample(input_tensor, kernel_nr, kernel_size, train,
         output = tf.concat([conv, pool], 3)
 
   return output
+
+
+def psp_layer(input_tensor, piramids, biggest_piramid, train, summary=False, data_format="NCHW"):
+  """Builds a psp layer to get context info.
+  Args:
+    input_tensor: input tensor
+    piramids: number of pooling layers to use
+    biggest_piramid: Size of biggest pooling kernel
+    train: If we want to train this layer or not
+    data_format: Self explanatory
+  Returns:
+    output: Output tensor from the convolution
+  """
+  if data_format == "NCHW":
+    # depth of previous layer feature map
+    prev_depth = input_tensor.get_shape().as_list()[1]
+    prev_h = input_tensor.get_shape().as_list()[2]
+    prev_w = input_tensor.get_shape().as_list()[3]
+  else:
+    # depth of previous layer feature map
+    prev_depth = input_tensor.get_shape().as_list()[3]
+    prev_h = input_tensor.get_shape().as_list()[1]
+    prev_w = input_tensor.get_shape().as_list()[2]
+  batch_size = input_tensor.get_shape().as_list()[0]
+
+  # calculate pooling kernel sizes
+  min_h_w = min(prev_h, prev_w)
+  if biggest_piramid > min_h_w:
+    print("WARNING! Biggest piramid is bigger than the shortest code dimension")
+  kernel_sizes = []
+  for i in range(piramids):
+    k_size = int(biggest_piramid / (2 ** i))
+    kernel_sizes.append(k_size)
+    print("PSP KSIZE: ", k_size)
+
+  # number of convolutions for each level
+  nodes = input_tensor
+  n_convs = int(prev_depth / float(len(kernel_sizes)))
+  print("NCONVS: ", n_convs)
+
+  with tf.variable_scope('psp'):
+    p = piramids
+    for k_size in kernel_sizes:
+      print('psp-' + str(p))
+      with tf.variable_scope('psp-' + str(p)):
+        p -= 1  # if I call the module psp-ksize it will break when retraining
+        # pool
+        pool = max_pool(input_tensor, k_size=k_size,
+                        stride=1, data_format=data_format, pad='VALID')
+        # conv
+        conv = conv_layer(pool, n_convs, (5, 5), 1, train, summary=summary,
+                          bnorm=False, relu=True, data_format=data_format)
+
+        # upsample kernel and deconv
+        # make kernel with 1's only where I want to upsample etc,etc
+        k_shape = (k_size, k_size, n_convs, n_convs)
+        k = np.zeros(k_shape)
+        ones = np.ones((k_size, k_size))
+        for i in range(n_convs):
+          k[:, :, i, i] = ones
+        k_tf = tf.constant(k, dtype=tf.float32)
+        print("Upsample k: ", k_shape)
+        if data_format == "NCHW":
+          upsample = tf.nn.conv2d_transpose(conv,
+                                            k_tf,
+                                            output_shape=(batch_size, n_convs,
+                                                          prev_h, prev_w),
+                                            strides=(1, 1, 1, 1),
+                                            padding='VALID',
+                                            data_format=data_format)
+          nodes = tf.concat([nodes, upsample], 1)
+        else:
+          upsample = tf.nn.conv2d_transpose(conv,
+                                            k_tf,
+                                            output_shape=(batch_size, prev_h,
+                                                          prev_w, n_convs),
+                                            strides=(1, 1, 1, 1),
+                                            padding='VALID',
+                                            data_format=data_format)
+          nodes = tf.concat([nodes, upsample], 3)
+
+  return nodes
+
+
+def reduce(input_tensor, skip, n_kernels, train, summary=False, data_format="NCHW"):
+  """ Concatenate input tensor and skip connection and apply a 1x1 conv
+  to reduce to n_kernels depth.
+  Args:
+    input_tensor: input tensor
+    skip: skip connection from encoder
+    n_kernels: number of new kernels
+    train: If we want to train this layer or not
+    summary: Save summaries
+    data_format: Self explanatory
+  Returns:
+    output: Output tensor from the op
+  """
+  with tf.variable_scope("reduce"):
+    if data_format == "NCHW":
+      concat = tf.concat([input_tensor, skip], 1)
+    else:
+      concat = tf.concat([input_tensor, skip], 3)
+
+    output = conv_layer(concat, n_kernels, [1, 1], 1, train,
+                        summary=summary, bnorm=True, relu=True, data_format=data_format)
+
+  return output
+
 
 # definition of pre-softmax layer + its variables (softmax is done by the cost
 # function, so to use this model, softmax needs to be applied afterwards)

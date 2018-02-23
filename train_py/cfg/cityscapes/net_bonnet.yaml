@@ -1,0 +1,22 @@
+# network cfg file
+name: "bonnet"
+dropout: 0.1
+bn_decay: 0.9
+n_k_lyr: # contains the amount of filters of each layer (non-bt-doesn't need it)
+  - 16  # block 1 3x3 downsample
+  - 48  # block 2 3x3 downsample
+  - 80  # block 3 3x3 downsample
+  - 48  # block 1 upsample
+  - 32  # block 2 upsample
+  - 16  # block 3 upsample
+train_lyr:          # boolean list of layers to train, starting by the first conv
+  - True  # block 1 downsample
+  - True  # block 2 downsample
+  - True  # block 3 downsample
+  - True  # godeep
+  - True  # psp
+  - True  # block 1 upsample
+  - True  # block 2 upsample
+  - True  # block 3 upsample
+  - True  # linear classifier
+  

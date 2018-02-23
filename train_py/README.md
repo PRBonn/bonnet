@@ -13,7 +13,7 @@ work with files to augment datasets and so on.
   
 ```sh
   $ sudo apt install libav-tools ffmpeg
-  $ sudo pip3 install opencv-python sk-video numpy colorama pyyaml matplotlib scipy
+  $ sudo pip3 install opencv-python sk-video numpy colorama pyyaml matplotlib scipy toposort
   $ export PYTHONPATH=/usr/local/lib/python3.5/dist-packages:$PYTHONPATH # Needed if you have ROS Kinetic installed
 ```
 
