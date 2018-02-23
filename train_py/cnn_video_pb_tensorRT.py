@@ -71,7 +71,8 @@ def predict_mask(cvim, frame, stream, d_input, d_output, context, FLAGS, DATA):
   cuda.memcpy_dtoh_async(output, d_output, stream)
   # syncronize threads
   stream.synchronize()
-  print("Prediction for frame ", frame, ". Elapsed: ", time.time() - start, "s")
+  elapsed = time.time() - start
+  print("Prediction for frame ", frame, ". Elapsed: ", elapsed, "s")
 
   # mask from logits
   mask = np.argmax(output, axis=0)
@@ -82,7 +83,16 @@ def predict_mask(cvim, frame, stream, d_input, d_output, context, FLAGS, DATA):
 
   # transparent
   im, transparent_mask = util.transparency(cvim, color_mask)
-  all_img = np.concatenate((cvim, transparent_mask, color_mask), axis=1)
+  all_img = np.concatenate((cvim, transparent_mask), axis=1)
+  w, h, _ = all_img.shape
+  watermark = "Time: {:.3f}s, FPS: {:.3f}img/s.".format(elapsed, 1 / elapsed)
+  cv2.putText(all_img, watermark,
+              org=(10, w - 10),
+              fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+              fontScale=0.75,
+              color=(255, 255, 255),
+              thickness=2,
+              lineType=cv2.LINE_AA)
 
   # write to disk
   cv2.imwrite(FLAGS.log + "/mask_" + frame + ".jpg", color_mask)
@@ -238,6 +248,9 @@ if __name__ == '__main__':
 
   # cuda stream to run inference in.
   stream = cuda.Stream()
+
+  # create resizeable window
+  cv2.namedWindow("video", cv2.WINDOW_NORMAL)
 
   # open video capture
   if FLAGS.video is "":

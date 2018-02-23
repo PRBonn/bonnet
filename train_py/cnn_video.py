@@ -44,13 +44,23 @@ def predict_mask(cvim, frame, net, FLAGS, DATA):
   start = time.time()
   mask = net.predict(cvim, path=FLAGS.path + '/' +
                      FLAGS.model, verbose=FLAGS.verbose)
-  print("Prediction for frame ", frame, ". Elapsed: ", time.time() - start, "s")
+  elapsed = time.time() - start
+  print("Prediction for frame ", frame, ". Elapsed: ", elapsed, "s")
 
   # change to color
   color_mask = util.prediction_to_color(
       mask, DATA["label_remap"], DATA["color_map"])
   im, transparent_mask = util.transparency(cvim, color_mask)
-  all_img = np.concatenate((im, transparent_mask, color_mask), axis=1)
+  all_img = np.concatenate((im, transparent_mask), axis=1)
+  w, h, _ = all_img.shape
+  watermark = "Time: {:.3f}s, FPS: {:.3f}img/s.".format(elapsed, 1 / elapsed)
+  cv2.putText(all_img, watermark,
+              org=(10, w - 10),
+              fontFace=cv2.FONT_HERSHEY_SIMPLEX,
+              fontScale=0.75,
+              color=(255, 255, 255),
+              thickness=2,
+              lineType=cv2.LINE_AA)
 
   # write to disk
   cv2.imwrite(FLAGS.log + "/mask_" + frame + ".jpg", color_mask)
@@ -194,16 +204,19 @@ if __name__ == '__main__':
     print("Error creating log directory. Check permissions! Exiting...")
     quit()
 
+  # create resizeable window
+  cv2.namedWindow("video", cv2.WINDOW_NORMAL)
+
   # open video capture
   if FLAGS.video is "":
     print("Webcam reading not implemented. Exiting")
-    quit()  
+    quit()
   else:
     inputparameters = {}
     outputparameters = {}
     reader = skio.FFmpegReader(FLAGS.video,
-                                     inputdict=inputparameters,
-                                     outputdict=outputparameters)
+                               inputdict=inputparameters,
+                               outputdict=outputparameters)
 
     i = 0
     for frame in reader.nextFrame():
