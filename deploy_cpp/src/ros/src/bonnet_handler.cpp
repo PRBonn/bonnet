@@ -4,15 +4,6 @@
 
 // net stuff
 #include "bonnet_handler.hpp"
-#ifdef TF_AVAIL
-#include <netTF.hpp>
-#endif  // TF_AVAIL
-#ifdef TRT_AVAIL
-#include <netTRT.hpp>
-#endif  // TRT_AVAIL
-#if (!defined TF_AVAIL) && (!defined TRT_AVAIL)
-#error("At least TF OR TensorRT must be installed")
-#endif
 
 namespace bonnet {
 
@@ -48,74 +39,19 @@ netHandler::netHandler(ros::NodeHandle& nodeHandle)
   */
 retCode netHandler::init() {
   // before doing anything, make sure we have a slash at the end of path
-  model_path_ += "/";
+  path_ += "/";
 
-  // Try to get the cofig nodes
   try {
-    cfg_train_ = YAML::LoadFile(model_path_ + "train.yaml");
-    cfg_net_ = YAML::LoadFile(model_path_ + "net.yaml");
-    cfg_data_ = YAML::LoadFile(model_path_ + "data.yaml");
-    cfg_nodes_ = YAML::LoadFile(model_path_ + "nodes.yaml");
-  } catch (YAML::Exception& ex) {
-    ROS_ERROR("Can't open one of the config files from the model path");
-    ROS_ERROR("%s", ex.what());
-    return CNN_FAIL;
-  }
-
-  // Init net according to selected backend
-  if (backend_ == "tf") {
-#ifdef TF_AVAIL
-    // Get the full path to the model
-    pb_model_path_ = model_path_ + model_ + ".pb";
-    ROS_INFO("Model path: %s", pb_model_path_.c_str());
-    if (access(pb_model_path_.c_str(), R_OK) != 0) {
-      ROS_ERROR("Model pb file has no permission or does not exist!");
-      return CNN_FATAL;
-    }
-
-    // define net
     net_ =
-        new NetTF(pb_model_path_, cfg_train_, cfg_net_, cfg_data_, cfg_nodes_);
-
-    // define verbosity
-    net_->verbosity(verbose_);
-#else
-    ROS_ERROR("Tensorflow is supported, but build couldn't find it");
+        std::unique_ptr<Bonnet>(new Bonnet(path_, backend_, device_, verbose_));
+  } catch (const std::invalid_argument& e) {
+    std::cerr << "Unable to create network. " << std::endl
+              << e.what() << std::endl;
     return CNN_FATAL;
-#endif  // TF_AVAIL
-
-  } else if (backend_ == "trt") {
-#ifdef TRT_AVAIL
-    // Get the full path to the model
-    pb_model_path_ = model_path_ + "optimized_tRT.uff";
-    ROS_INFO("Model path: %s", pb_model_path_.c_str());
-    if (access(pb_model_path_.c_str(), R_OK) != 0) {
-      ROS_ERROR("Model pb file has no permission or does not exist!");
-      return CNN_FATAL;
-    }
-
-    // define net
-    net_ =
-        new NetTRT(pb_model_path_, cfg_train_, cfg_net_, cfg_data_, cfg_nodes_);
-
-    // define verbosity
-    net_->verbosity(verbose_);
-#else
-    ROS_ERROR("TensorRT is supported, but build couldn't find it");
+  } catch (const std::runtime_error& e) {
+    std::cerr << "Unable to init. network. " << std::endl
+              << e.what() << std::endl;
     return CNN_FATAL;
-#endif  // TRT_AVAIL
-  } else {
-    ROS_ERROR(
-        "Tensorflow (tf) and TensorRT (trt) backends are the only one "
-        "implemented right now");
-    return CNN_FATAL;
-  }
-
-  // Initialize net in proper device
-  retCode status = net_->init(device_);
-  if (status != CNN_OK) {
-    ROS_ERROR("Failed to intialize CNN.");
-    return status;
   }
 
   return CNN_OK;
@@ -124,19 +60,14 @@ retCode netHandler::init() {
 /*!
  * Destructor.
  */
-netHandler::~netHandler() {
-  if (net_) {
-    delete net_;
-  }
-}
+netHandler::~netHandler() {}
 
 bool netHandler::readParameters() {
   if (!node_handle_.getParam("image_topic", img_subscriber_topic_) ||
       !node_handle_.getParam("bgr_topic", bgr_publisher_topic_) ||
       !node_handle_.getParam("mask_topic", mask_publisher_topic_) ||
       !node_handle_.getParam("color_mask_topic", color_mask_publisher_topic_) ||
-      !node_handle_.getParam("model_path", model_path_) ||
-      !node_handle_.getParam("model", model_) ||
+      !node_handle_.getParam("model_path", path_) ||
       !node_handle_.getParam("verbose", verbose_) ||
       !node_handle_.getParam("device", device_) ||
       !node_handle_.getParam("backend", backend_))

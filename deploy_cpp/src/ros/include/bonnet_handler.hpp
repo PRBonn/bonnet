@@ -6,7 +6,7 @@
 #include <ros/ros.h>
 
 // Network
-#include <net.hpp>
+#include <bonnet.hpp>
 
 namespace bonnet {
 
@@ -66,17 +66,12 @@ class netHandler {
   std::string color_mask_publisher_topic_;
 
   //! CNN related stuff
-  Net* net_;
-  std::string model_path_;
-  std::string pb_model_path_;
+  std::unique_ptr<Bonnet> net_;
+  std::string path_;
   std::string model_;
   bool verbose_;
   std::string device_;
   std::string backend_;
-  YAML::Node cfg_train_;
-  YAML::Node cfg_net_;
-  YAML::Node cfg_data_;
-  YAML::Node cfg_nodes_;
 };
 
 } /* namespace */

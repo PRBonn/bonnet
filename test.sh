@@ -10,14 +10,6 @@ pip install -U pip catkin-tools trollius
 source /opt/ros/kinetic/setup.bash
 
 # build
-cd deploy_cpp/standalone # build standalone apps
-mkdir -p build
-cd build
-cmake ..
-make -j
-cd ../../../
-mkdir -p ~/catkin_ws/src/bonnet/ # build ros nodes
-cp -r ./* ~/catkin_ws/src/bonnet/
-cd ~/catkin_ws
+cd deploy_cpp
 catkin init
 catkin build

@@ -16,11 +16,7 @@ add_definitions(-std=c++11 -Wfatal-errors)
 # check flags
 message("Build type: ${CMAKE_BUILD_TYPE}")
 
-# set flags for Tensorflow and TensorRT availability
-option(TF_AVAIL "Tensorflow available" OFF)
-option(CUDA_AVAIL "CUDA available" OFF)
-option(TRT_AVAIL "TensorRT available" OFF)
-
+## Find libraries
 # try the shared tensorflow
 find_package(TensorflowCC COMPONENTS Shared)
 if(TensorflowCC_Shared_FOUND)
@@ -63,55 +59,58 @@ else()
 endif()
 message("TRT_AVAIL ${TRT_AVAIL}\n")
 
-# get opencv
-find_package(OpenCV)
-if(OpenCV_FOUND)
-  message("OpenCV Libs: ${OpenCV_LIBS}")
-  message("OpenCV Headers: ${OpenCV_INCLUDE_DIRS}\n")
-else()
-  error("OpenCV NOT FOUND\n")
-endif()
-
 find_package(Boost COMPONENTS program_options filesystem)
-if(OpenCV_FOUND)
+if(Boost_FOUND)
   message("Boost Libs: ${Boost_LIBRARIES}")
   message("Boost Headers: ${Boost_INCLUDE_DIRS}\n")
 else()
-  error("Boost NOT FOUND\n")
+  message(FATAL_ERROR "Boost NOT FOUND\n")
+endif()
+
+# get opencv
+find_package(OpenCV)
+if(OpenCV_FOUND)
+  message("OpenCV Libs: ${OpenCV_LIBRARIES}")
+  message("OpenCV Headers: ${OpenCV_INCLUDE_DIRS}\n")
+else()
+  message(FATAL_ERROR "OpenCV NOT FOUND\n")
 endif()
 
 # libyaml-cpp
 find_package (yaml-cpp)
 if (yaml-cpp_FOUND)
   message("YAML Libs: ${YAML_CPP_LIBRARIES}")
-  message("YAML Headers: ${YAML_CPP_INCLUDE_DIR}")
+  message("YAML Headers: ${YAML_CPP_INCLUDE_DIR}\n")
 else()
-  error("yaml-cpp NOT FOUND\n")
+  message(FATAL_ERROR "yaml-cpp NOT FOUND\n")
 endif (yaml-cpp_FOUND)
 
-# define the network library (compiling tf and trt conditionally)
-set(bonnet_core_SOURCES ../lib/src/net.cpp)
-set(bonnet_core_INCLUDES ../lib/include
-                         ${OpenCV_INCLUDE_DIRS}
-                         ${YAML_CPP_INCLUDE_DIR})
-set(bonnet_core_LIBRARIES ${OpenCV_LIBS}
-                          ${YAML_CPP_LIBRARIES})
+find_package(bonnet_core)
+if(bonnet_core_FOUND)
+  message("bonnet_core Libs: ${bonnet_core_LIBRARIES}")
+  message("bonnet_core Headers: ${bonnet_core_INCLUDE_DIRS}")
+else()
+  message(FATAL_ERROR "bonnet_core Not Found!\n")
+endif()
+                      
+
+###########
+## Build ##
+###########
+
+## Specify additional locations of header files
+## Your package locations should be listed before other locations
+list(APPEND standalone_INCLUDES include)
 if(TF_AVAIL)
-  list(APPEND bonnet_core_SOURCES ../lib/src/netTF.cpp)
-  list(APPEND bonnet_core_INCLUDES ${TF_INCLUDE_DIRS})
-  list(APPEND bonnet_core_LIBRARIES ${TF_LIBS})
+  list(APPEND standalone_INCLUDES ${TF_INCLUDE_DIRS})
+  list(APPEND standalone_LIBRARIES ${TF_LIBS})
 endif()
 if(TRT_AVAIL AND CUDA_AVAIL)
-  list(APPEND bonnet_core_SOURCES ../lib/src/netTRT.cpp)
-  list(APPEND bonnet_core_INCLUDES ${CUDA_INCLUDE_DIRS})
-  list(APPEND bonnet_core_LIBRARIES ${CUDA_LIBRARIES}
+  list(APPEND standalone_INCLUDES ${CUDA_INCLUDE_DIRS})
+  list(APPEND standalone_LIBRARIES ${CUDA_LIBRARIES}
                                     nvinfer
                                     nvparsers)
 endif()
-
-add_library(bonnet_core ${bonnet_core_SOURCES})
-target_include_directories(bonnet_core PUBLIC ${bonnet_core_INCLUDES})
-target_link_libraries(bonnet_core PUBLIC ${bonnet_core_LIBRARIES})
 
 # apps
 if(TF_AVAIL)
@@ -121,24 +120,37 @@ if(TF_AVAIL)
 endif()
 
 add_executable(cnn_use_pb src/cnn_use_pb.cpp)
-target_link_libraries(cnn_use_pb  bonnet_core
+target_link_libraries(cnn_use_pb  ${standalone_LIBRARIES}
+                                  ${bonnet_core_LIBRARIES}
                                   ${OpenCV_LIBS}
                                   ${Boost_LIBRARIES}
                                   ${YAML_CPP_LIBRARIES})
 
 
 add_executable(cnn_video_pb src/cnn_video_pb.cpp)
-target_link_libraries(cnn_video_pb  bonnet_core
+target_link_libraries(cnn_video_pb  ${standalone_LIBRARIES}
+                                    ${bonnet_core_LIBRARIES}
                                     ${OpenCV_LIBS}
                                     ${Boost_LIBRARIES}
                                     ${YAML_CPP_LIBRARIES})
 
 # explicit include dirs
 include_directories(
+  ${standalone_INCLUDES}
+  ${bonnet_core_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
   ${BOOST_INCLUDE_DIRS}
   ${YAML_CPP_INCLUDE_DIR}
 )
 
+#############
+## Install ##
+#############
+
+# Mark executables and/or libraries for installation
+install(
+  TARGETS cnn_use_pb cnn_video_pb
+  DESTINATION bin/
+)
 
 

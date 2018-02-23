@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.3 FATAL_ERROR)
-project(bonnet)
+project(bonnet_core)
 
 # handle debug vs release mode
 if(NOT CMAKE_BUILD_TYPE)
@@ -19,11 +19,6 @@ message("Build type: ${CMAKE_BUILD_TYPE}")
 ## Find catkin macros and libraries
 find_package(catkin REQUIRED
   COMPONENTS
-    roscpp
-    sensor_msgs
-    std_msgs
-    cv_bridge
-    image_transport
 )
 
 ###################################
@@ -35,8 +30,6 @@ catkin_package(
   LIBRARIES
     bonnet_core
   CATKIN_DEPENDS
-    sensor_msgs
-    std_msgs
 #  DEPENDS
 )
 
@@ -94,7 +87,7 @@ if(OpenCV_FOUND)
   message("OpenCV Libs: ${OpenCV_LIBS}")
   message("OpenCV Headers: ${OpenCV_INCLUDE_DIRS}\n")
 else()
-  error("OpenCV NOT FOUND\n")
+  message(FATAL_ERROR "OpenCV NOT FOUND\n")
 endif()
 
 # libyaml-cpp
@@ -103,7 +96,7 @@ if (yaml-cpp_FOUND)
   message("YAML Libs: ${YAML_CPP_LIBRARIES}")
   message("YAML Headers: ${YAML_CPP_INCLUDE_DIR}")
 else()
-  error("yaml-cpp NOT FOUND\n")
+  message(FATAL_ERROR "yaml-cpp NOT FOUND\n")
 endif (yaml-cpp_FOUND)
 
 
@@ -114,7 +107,6 @@ endif (yaml-cpp_FOUND)
 ## Specify additional locations of header files
 ## Your package locations should be listed before other locations
 include_directories(
-  ../../lib/include
   include
   ${catkin_INCLUDE_DIRS}
   ${OpenCV_INCLUDE_DIRS}
@@ -123,19 +115,19 @@ include_directories(
 
 ## Declare a cpp library
 # define the network library (compiling tf and trt conditionally)
-set(bonnet_core_SOURCES ../../lib/src/net.cpp)
-set(bonnet_core_INCLUDES ../../lib/include
+set(bonnet_core_SOURCES src/net.cpp src/bonnet.cpp)
+set(bonnet_core_INCLUDES include
                          ${OpenCV_INCLUDE_DIRS}
                          ${YAML_CPP_INCLUDE_DIR})
 set(bonnet_core_LIBRARIES ${OpenCV_LIBS}
                           ${YAML_CPP_LIBRARIES})
 if(TF_AVAIL)
-  list(APPEND bonnet_core_SOURCES ../../lib/src/netTF.cpp)
+  list(APPEND bonnet_core_SOURCES src/netTF.cpp)
   list(APPEND bonnet_core_INCLUDES ${TF_INCLUDE_DIRS})
   list(APPEND bonnet_core_LIBRARIES ${TF_LIBS})
 endif()
 if(TRT_AVAIL AND CUDA_AVAIL)
-  list(APPEND bonnet_core_SOURCES ../../lib/src/netTRT.cpp)
+  list(APPEND bonnet_core_SOURCES src/netTRT.cpp)
   list(APPEND bonnet_core_INCLUDES ${CUDA_INCLUDE_DIRS})
   list(APPEND bonnet_core_LIBRARIES ${CUDA_LIBRARIES}
                                     nvinfer
@@ -145,25 +137,13 @@ add_library(bonnet_core ${bonnet_core_SOURCES})
 target_include_directories(bonnet_core PUBLIC ${bonnet_core_INCLUDES})
 target_link_libraries(bonnet_core PUBLIC ${bonnet_core_LIBRARIES})
 
-## Declare cpp executables
-add_executable(bonnet_node
-  src/bonnet_node.cpp
-  src/bonnet_handler.cpp
-)
-
-target_link_libraries(bonnet_node
-  bonnet_core
-  ${catkin_LIBRARIES}
-  ${OpenCV_LIBS}
-)
-
 #############
 ## Install ##
 #############
 
 # Mark executables and/or libraries for installation
 install(
-  TARGETS bonnet_core bonnet_node
+  TARGETS bonnet_core
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -171,16 +151,7 @@ install(
 
 # Mark cpp header files for installation
 install(
-  DIRECTORY ../../lib/include
+  DIRECTORY include
   DESTINATION ${CATKIN_PACKAGE_INCLUDE_DESTINATION}
   FILES_MATCHING PATTERN "*.hpp"
 )
-
-#############
-## Testing ##
-#############
-
-if(CATKIN_ENABLE_TESTING)
-  set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -pthread")
-  ## Add gtest based cpp test target and link libraries!
-endif()

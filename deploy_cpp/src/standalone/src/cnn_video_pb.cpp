@@ -27,16 +27,8 @@
 #include <iostream>
 #include <string>
 
-// network library
-#ifdef TF_AVAIL
-#include <netTF.hpp>
-#endif  // TF_AVAIL
-#ifdef TRT_AVAIL
-#include <netTRT.hpp>
-#endif  // TRT_AVAIL
-#if !defined TF_AVAIL && !defined TRT_AVAIL
-#error("At least TF OR TensorRT must be installed")
-#endif
+// net stuff
+#include <bonnet.hpp>
 
 // boost
 #include <boost/program_options.hpp>
@@ -49,8 +41,8 @@ namespace fs = boost::filesystem;
 
 int main(int argc, const char *argv[]) {
   // define options
-  std::vector<std::string> images;
-  std::string log = "/tmp/net_predict_log_cpp/";
+  std::string video = "";
+  std::string log = "/tmp/net_predict_log_video_cpp/";
   std::string path;
   std::string model = "frozen_nchw";
   bool verbose = false;
@@ -61,15 +53,13 @@ int main(int argc, const char *argv[]) {
   try {
     po::options_description desc{"Options"};
     desc.add_options()("help,h", "Help screen")(
-        "image,i", po::value<std::vector<std::string>>(&images)->multitoken(),
-        "Images to infer. No Default")(
+        "video,v", po::value<std::string>(),
+        "Video to infer. Defaults to webcam.")(
         "log,l", po::value<std::string>(),
         "Directory to log output of predictions.")(
         "path,p", po::value<std::string>(),
         "Directory to get the frozen pb model. No default")(
-        "model,m", po::value<std::string>(),
-        "Type of model (frozen_nchw, frozen_nhwc, optimized, or quantized)")(
-        "verbose,v", po::bool_switch(),
+        "verbose", po::bool_switch(),
         "Verbose mode. Calculates profile (time to run)")(
         "dev,d", po::value<std::string>(),
         "Device to run on. Example (/gpu:0 or /cpu:0)")(
@@ -87,13 +77,11 @@ int main(int argc, const char *argv[]) {
       return 0;
     }
 
-    if (!vm["image"].empty()) {
-      for (const auto &image : images) {
-        std::cout << "image: " << image << std::endl;
-      }
+    if (vm.count("video")) {
+      video = vm["video"].as<std::string>();
+      std::cout << "video: " << video << std::endl;
     } else {
-      std::cerr << "No images! See --help (-h) for help. Exiting" << std::endl;
-      return 1;
+      std::cout << "video: Using default (camera)!" << std::endl;
     }
 
     if (vm.count("log")) {
@@ -108,12 +96,6 @@ int main(int argc, const char *argv[]) {
     } else {
       std::cerr << "No path! See --help (-h) for help. Exiting" << std::endl;
       return 1;
-    }
-    if (vm.count("model")) {
-      model = vm["model"].as<std::string>();
-      std::cout << "model: " << model << std::endl;
-    } else {
-      std::cout << "model: " << model << ". Using default!" << std::endl;
     }
     if (vm.count("verbose")) {
       verbose = vm["verbose"].as<bool>();
@@ -153,89 +135,55 @@ int main(int argc, const char *argv[]) {
   }
   std::cout << "Successfully created log directory: " << log << std::endl;
 
-  // define dictionaries for net
-  YAML::Node cfg_train;
-  YAML::Node cfg_net;
-  YAML::Node cfg_data;
-  YAML::Node cfg_nodes;
-  try {
-    cfg_train = YAML::LoadFile(path + "train.yaml");
-    cfg_net = YAML::LoadFile(path + "net.yaml");
-    cfg_data = YAML::LoadFile(path + "data.yaml");
-    cfg_nodes = YAML::LoadFile(path + "nodes.yaml");
-  } catch (YAML::Exception &ex) {
-    std::cerr << "Can't open one of the config files from the model path "
-                 "directory. Exception: "
-              << ex.what() << std::endl;
-    return 1;
-  }
-
   // network stuff
   cv::Mat mask_argmax;
   bonnet::retCode status;
-  std::unique_ptr<bonnet::Net> net;
-  if (backend == "tf") {
-#ifdef TF_AVAIL
-    // form the model path from path and model
-    std::string full_model_path = path + model + ".pb";
-    std::cout << "Full model path: " << full_model_path << std::endl;
-
-    // generate net with tf backend
-    net = std::unique_ptr<bonnet::Net>(new bonnet::NetTF(
-        full_model_path, cfg_train, cfg_net, cfg_data, cfg_nodes));
-
-    // set verbosity
-    net->verbosity(verbose);
-#else
-    std::cerr << "Tensorflow is supported, but build was not able to find it."
-              << std::endl;
-    return 1;
-#endif  // TF_AVAIL
-  } else if (backend == "trt") {
-#ifdef TRT_AVAIL
-    // form the model path from path and model
-    std::string full_model_path = path + "optimized_tRT.uff";
-    std::cout << "Full model path: " << full_model_path << std::endl;
-
-    // generate net with TensorRT backend
-    net = std::unique_ptr<bonnet::Net>(new bonnet::NetTRT(
-        full_model_path, cfg_train, cfg_net, cfg_data, cfg_nodes));
-    // set verbosity
-    net->verbosity(verbose);
-#else
-    std::cerr << "TensorRT is supported, but build was not able to find it."
-              << std::endl;
-    return 1;
-#endif  // TRT_AVAIL
-  } else {
-    std::cerr << "Tensorflow (tf) and Tensor RT (trt) backends are the only"
-                 "ones implemented right now. Exiting..."
-              << std::endl;
-    return 1;
-  }
+  std::unique_ptr<bonnet::Bonnet> net;
 
   // initialize network
-  status = net->init(device);
-  if (status != bonnet::CNN_OK) {
-    std::cerr << "Failed to intialize CNN." << std::endl;
+  try {
+    net = std::unique_ptr<bonnet::Bonnet>(
+        new bonnet::Bonnet(path, backend, device, verbose));
+  } catch (const std::invalid_argument &e) {
+    std::cerr << "Unable to create network. " << std::endl
+              << e.what() << std::endl;
+    return 1;
+  } catch (const std::runtime_error &e) {
+    std::cerr << "Unable to init. network. " << std::endl
+              << e.what() << std::endl;
     return 1;
   }
 
-  // predict each image
-  for (auto image : images) {
-    std::cout << std::setfill('=') << std::setw(80) << "" << std::endl;
-    std::cout << "Predicting image: " << image << std::endl;
+  // open capture
+  std::unique_ptr<cv::VideoCapture> cap;
+  if (video == "") {
+    std::cout << "Opening webcam for prediction." << std::endl;
+    cap = std::unique_ptr<cv::VideoCapture>(new cv::VideoCapture(0));
+  } else {
+    std::cout << "Opening video" << video << " for prediction." << std::endl;
+    cap = std::unique_ptr<cv::VideoCapture>(new cv::VideoCapture(video));
+  }
+  if (!cap->isOpened())  // check if we succeeded
+  {
+    return 1;
+  }
 
-    // Open an image
-    cv::Mat cv_img = cv::imread(image);
+  // predict each frame
+  for (int i = 0;; i++) {
+    std::cout << std::setfill('=') << std::setw(80) << "" << std::endl;
+    std::cout << "Predicting frame: " << i << std::endl;
+
+    // Open a frame
+    cv::Mat frame;
+    *cap >> frame;  // get a new frame from camera
     // Check for invalid input
-    if (!cv_img.data) {
-      std::cerr << "Could not open or find the image" << std::endl;
+    if (!frame.data) {
+      std::cerr << "No image in frame!" << std::endl;
       return 1;
     }
 
     // predict
-    status = net->infer(cv_img, mask_argmax, verbose);
+    status = net->infer(frame, mask_argmax, verbose);
     if (status != bonnet::CNN_OK) {
       std::cerr << "Failed to run CNN." << std::endl;
       return 1;
@@ -251,17 +199,17 @@ int main(int argc, const char *argv[]) {
 
     // save image to log directory
     std::string image_log_path =
-        log + "/" + fs::path(image).stem().string() + ".png";
+        log + fs::path(std::to_string(i)).stem().string() + ".png";
     std::cout << "Saving this image to " << image_log_path << std::endl;
     cv::imwrite(image_log_path, mask_bgr);
 
     // print the output
-    if (verbose) {
-      cv::namedWindow("Display window",
-                      cv::WINDOW_AUTOSIZE);    // Create a window for display.
-      cv::imshow("Display window", mask_bgr);  // Show our image inside
-      cv::waitKey(0);  // Wait for a keystroke in the window}
-    }
+    cv::namedWindow("Display window", cv::WINDOW_AUTOSIZE);
+    cv::imshow("Display window", mask_bgr);  // Show the frame
+    if (cv::waitKey(1) == 27) {
+      break;
+    };
+
     std::cout << std::setfill('=') << std::setw(80) << "" << std::endl;
   }
 

@@ -11,15 +11,12 @@ as output (which depend on the problem).
 #### To use with tensorflow backend
 - Install Bazel [link](https://docs.bazel.build/versions/master/install-ubuntu.html#install-on-ubuntu)
 
-- Tensorflow Python (Follow link, it is complete for install of CUDA, CUDNN, etc): [Link](https://www.tensorflow.org/install/install_linux)
-
 - Tensorflow Cpp using shared library cmake install [External Install](https://github.com/FloopCZ/tensorflow_cc)
 
 #### To use with TensorRT
 
 - If the tensorRT backend to run with higher performance is desired you neet to install it:
   - TensorRT [Download](https://developer.nvidia.com/nvidia-tensorrt-download)
-  - PyCUDA [Link](https://wiki.tiker.net/PyCuda/Installation/Linux)
 
 **_IMPORTANT_**: Tensorflow and TensorRT don't need each other in C++ mode. This is important
 when deploying in an embedded device, such as the Jetson, as Tensorflow is slow and cumbersome
@@ -29,7 +26,13 @@ IS NOT INSTALLED, IT IS NOT USED.**
 
 #### Extra stuff
 
-- Boost and yaml: 
+- We use catkin tools for building the library and the apps (both ROS and standalone):
+
+```sh
+  $ sudo pip install catkin_tools trollius
+```
+
+- Boost and yaml (if you have ROS Kinetic installed, this is not necessary): 
 
 ```sh
   $ sudo apt install libboost-all-dev libyaml-cpp-dev
@@ -37,21 +40,21 @@ IS NOT INSTALLED, IT IS NOT USED.**
 
 - Opencv3: [Link](http://docs.opencv.org/3.0-beta/doc/tutorials/introduction/linux_install/linux_install.html) (if you have ROS Kinetic installed, this is not necessary)
 
-- If you want to use the ROS node, of course, you need to install [ROS](http://wiki.ros.org/ROS/Installation) We tested on Kinetic :)
+- If you want to use the ROS node, of course, you need to install [ROS](http://wiki.ros.org/ROS/Installation) We tested on Kinetic, and CI docker is on kinetic as well :)
 
 
 ## Usage
 
 #### Standalone examples
 
-This are example files to check the usage of your frozen models and your tensorflow install.
+We use catkin tools. These are example files to check the usage of your frozen models and your tensorflow install.
 
 ###### Build
 
 ```sh
-$ mkdir standalone/build; cd standalone/build
-$ cmake ..
-$ make -j2
+$ cd bonnet/deploy_cpp
+$ catkin init
+$ catkin build bonnet_standalone
 ```
 
 ###### Use
@@ -59,7 +62,7 @@ $ make -j2
 The _"cnn_use_pb"_ app takes a frozen protobuf and images and predicts the output masks. 
 
 ```sh
-$ ./cnn_use_pb -p /tmp/path/to/pretrained -i /path/to/image -l /tmp/path/to/log/ -b trt/tf
+$ ./build/bonnet_standalone/cnn_use_pb -p /tmp/path/to/pretrained -i /path/to/image -l /tmp/path/to/log/ -b trt/tf
 ```
 
   - _"cnn_use_pb"_ uses the frozen tensorflow model from disk and calculates the mask for each image. Finally, it saves all predictions to the log path.
@@ -71,7 +74,7 @@ $ ./cnn_use_pb -p /tmp/path/to/pretrained -i /path/to/image -l /tmp/path/to/log/
 The _"cnn_video_pb"_ app takes a frozen protobuf and a video and predicts the output masks. 
 
 ```sh
-$ ./cnn_video_pb -p /tmp/path/to/pretrained -v /path/to/video -l /tmp/path/to/log/ -b trt/tf
+$ ./build/bonnet_standalone/cnn_video_pb -p /tmp/path/to/pretrained -v /path/to/video -l /tmp/path/to/log/ -b trt/tf
 ```
 
   - _"cnn_video_pb"_ uses the frozen tensorflow model from disk and calculates the mask for each frame. Finally, it saves all predictions to the log path.
@@ -83,14 +86,14 @@ $ ./cnn_video_pb -p /tmp/path/to/pretrained -v /path/to/video -l /tmp/path/to/lo
 The _"session"_ app starts a tensorflow session and outputs if it was successful (as a test)
 
 ```sh
-$ ./session
+$ ./build/bonnet_standalone/session
 ```
 
   - _"session"_ is mainly for checking if the tensorflow install went well and if you can see the GPU, as it will output its success and the visible devices.
 If a GPU was found you should see something like this:
 
 ```sh
-$ ./session
+$ ./build/bonnet_standalone/session
 
 2017-12-18 13:12:40.776389: I tensorflow/core/common_runtime/gpu/gpu_device.cc:1030] Found device 0 with properties: 
 name: GeForce 940MX major: 5 minor: 0 memoryClockRate(GHz): 1.2415
@@ -120,5 +123,5 @@ $ source devel/setup.bash
 ###### Launch
 
 ```sh
-$ roslaunch bonnet bonnet.launch
+$ roslaunch bonnet_run bonnet_run.launch
 ```

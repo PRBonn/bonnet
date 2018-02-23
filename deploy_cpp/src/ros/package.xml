@@ -1,8 +1,8 @@
 <?xml version="1.0"?>
 <package format="2">
-  <name>bonnet</name>
+  <name>bonnet_run</name>
   <version>0.1.0</version>
-  <description>ROS Node for Semantic Segmentation using CNN's with Tensorflow</description>
+  <description>ROS Nodes for Semantic Segmentation using CNN's with Tensorflow and TensorRT</description>
   <maintainer email="amilioto@uni-bonn.de">Andres Milioto</maintainer>
   <author email="amilioto@uni-bonn.de">Andres Milioto</author>
   <license>GPLv3</license>
@@ -14,6 +14,7 @@
   <depend>std_msgs</depend>
   <depend>cv_bridge</depend>
   <depend>image_transport</depend>
+  <depend>bonnet_core</depend>
 
   <test_depend>rosunit</test_depend>
 

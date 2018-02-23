@@ -1,0 +1,14 @@
+<?xml version="1.0"?>
+<package format="2">
+  <name>bonnet_standalone</name>
+  <version>0.1.0</version>
+  <description>Standalone Apps for Semantic Segmentation using CNN's with Tensorflow and TensorRT</description>
+  <maintainer email="amilioto@uni-bonn.de">Andres Milioto</maintainer>
+  <author email="amilioto@uni-bonn.de">Andres Milioto</author>
+  <license>GPLv3</license>
+  
+  <buildtool_depend>catkin</buildtool_depend>
+  
+  <depend>bonnet_core</depend>
+
+</package>

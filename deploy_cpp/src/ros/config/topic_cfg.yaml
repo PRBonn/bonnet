@@ -1,5 +1,5 @@
 # inputs
-image_topic: /left/image_raw
+image_topic: /kitti/camera_color_left/image_raw
 
 # outputs
 bgr_topic: /bonnet/bgr

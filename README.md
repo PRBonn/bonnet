@@ -1,13 +1,11 @@
 # Bonnet: Tensorflow Convolutional Semantic Segmentation pipeline
 
-[![Build Status](https://travis-ci.org/Photogrammetry-Robotics-Bonn/bonnet.svg?branch=master)](https://travis-ci.org/Photogrammetry-Robotics-Bonn/bonnet)
-
 By [Andres Milioto](http://www.ipb.uni-bonn.de/people/andres-milioto/) @ University of Bonn.
 
 ![Image of cityscapes](https://image.ibb.co/i5tEQR/CITY.png)
 Cityscapes Urban Scene understanding.
-- [Standalone Video Predictor - Video 1](https://youtu.be/QOKz81GnUTY)
-- [Standalone Video Predictor - Video 2](https://youtu.be/NUyQ1Rqi6Zo)
+- [Standalone Video Predictor - 512x256px](https://youtu.be/RXK_eYO_i08)
+- [Standalone Video Predictor - 1024x512px](https://youtu.be/tfeFHCq6YJs)
 
 ![Image of cwc](https://image.ibb.co/fcKXC6/CWC.png)
 Crop vs. Weed Semantic Segmentation.
@@ -24,10 +22,10 @@ are implemented for now. For now, we will keep it this way because we are mostly
 interested in deployment for the Jetson and Drive platforms, but if you have a specific
 need, we accept pull requests!
 
-The two networks included (ERF and uERF) are based of of many other architectures
-(see below), but not exactly a copy of any of them. They both run very fast in
+The networks included is based of of many other architectures
+(see below), but not exactly a copy of any of them. As seen in the videos, they run very fast in
 both GPU and CPU, and they are designed with performance in mind, at the cost of
-a slight accuracy loss. Feel free to use them as a model to implement your own
+a slight accuracy loss. Feel free to use it as a model to implement your own
 architecture.
 
 All scripts have been tested on the following configurations:
@@ -77,15 +75,14 @@ put the data into the standard dataset format) feel free to create a pull reques
 If you don't have GPUs and the task is interesting for robots to exploit, I will
 gladly train it whenever I have some free GPU time in our servers.
 
-- Cityscapes (512x256px):
-  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cityscapes_erf.tar.gz)
-  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cityscapes_uerf.tar.gz)
-- Synthia (512x384px):
-  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/synthia_erf.tar.gz)
-  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/synthia_uerf.tar.gz)
-- Crop-Weed (CWC) (512x384px):
-  - ERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cwc_erf.tar.gz)
-  - uERF [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.1/cwc_uerf.tar.gz)
+- Cityscapes:
+  - 512x256 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_512.tar.gz)
+  - 1024x512 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_1024.tar.gz)
+- Synthia:
+  - 512x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/synthia_512.tar.gz)
+  - 960x720 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/synthia_960.tar.gz)
+- Crop-Weed (CWC):
+  - 512x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/cwc_512.tar.gz)
 
 ## License
 
@@ -119,12 +116,15 @@ Our networks are strongly based on the following architectures, so if you
 use them for any academic work, please give a look at their papers and cite them
 if you think proper:
 
-- U-NET: [Link](https://arxiv.org/abs/1505.04597)
 - SegNet: [Link](https://arxiv.org/abs/1511.00561)
 - E-Net: [Link](https://arxiv.org/abs/1606.02147)
 - ERFNet: [Link](http://www.robesafe.uah.es/personal/eduardo.romera/pdfs/Romera17tits.pdf)
+- PSPNet [Link](https://arxiv.org/abs/1612.01105)
 
 ## Other useful GitHub's:
+- [OpenAI Checkpointed Gradients](https://github.com/openai/gradient-checkpointing). Useful
+implementation of checkpointed gradients to be able to fit big models in GPU memory without sacrificing
+runtime.
 - [Queueing tool](https://github.com/alexanderrichard/queueing-tool): Very nice
 queueing tool to share GPU, CPU and Memory resources in a multi-GPU environment.
 - [Tensorflow_cc](https://github.com/FloopCZ/tensorflow_cc): Very useful repo

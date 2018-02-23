@@ -1,9 +1,0 @@
-<launch>
-  <!-- Launch ROS Node for net handler with all the desired parameters-->
-  <node pkg="bonnet" type="bonnet_node" name="bonnet_node" output="screen">
-    <!-- Topics -->
-    <rosparam command="load" file="$(find bonnet)/config/topic_cfg.yaml" />
-    <!-- CNN stuff -->
-    <rosparam command="load" file="$(find bonnet)/config/cnn_cfg.yaml" />
-  </node>
-</launch>

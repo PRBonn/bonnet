@@ -1,5 +1,8 @@
 # cpp cmake build stuff
 **/build/*
+deploy_cpp/.catkin_tools/
+deploy_cpp/devel/
+deploy_cpp/logs/
 
 # sublime project
 **.sublime-project
