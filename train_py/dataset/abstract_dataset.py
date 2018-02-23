@@ -23,6 +23,7 @@
 import queue
 import threading
 import cv2
+import numpy as np
 import os
 import random
 
@@ -48,13 +49,16 @@ class ImgFetcher(threading.Thread):
       img = cv2.flip(img, 1)
       lbl = cv2.flip(lbl, 1)
 
-    # shift?
-    # pix = random.randint(-1, 1)
-    # if pix != 0:
-    #   M = np.float32([[1,0,pix],[0,1,0]])
-    #   rows,cols = img.shape
-    #   img = cv2.warpAffine(img,M,(cols,rows))
-    #   lbl = cv2.warpAffine(lbl,M,(cols,rows))
+    # gamma shift
+    gamma = bool(random.getrandbits(1))
+    if gamma:
+      # build a lookup table mapping the pixel values [0, 255] to
+      # their adjusted gamma values
+      randomGamma = np.random.uniform(low=0.8, high=1.2)
+      invGamma = 1.0 / randomGamma
+      table = np.array([((i / 255.0) ** invGamma) * 255
+                        for i in np.arange(0, 256)]).astype("uint8")
+      img = cv2.LUT(img, table)
 
     return img, lbl
 
@@ -63,7 +67,8 @@ class ImgFetcher(threading.Thread):
     while not self.die:
       # Fetch images
       # print self.dataset.images[self.dataset.idx]
-      img = cv2.imread(self.dataset.images[self.dataset.idx], cv2.IMREAD_UNCHANGED)
+      img = cv2.imread(
+          self.dataset.images[self.dataset.idx], cv2.IMREAD_UNCHANGED)
       lbl = cv2.imread(self.dataset.labels[self.dataset.idx], 0)
       name = os.path.basename(self.dataset.images[self.dataset.idx])
 
