@@ -173,8 +173,10 @@ if __name__ == '__main__':
     quit()
 
   # predict
+  ignore_crap = TRAIN["ignore_crap"]
   net.predict_dataset(FLAGS.dataset, path=FLAGS.path +
-                      '/' + FLAGS.model, batchsize=FLAGS.batchsize)
+                      '/' + FLAGS.model, batchsize=FLAGS.batchsize,
+                      ignore_last = ignore_crap)
 
   # clean up
   net.cleanup(None, None)
