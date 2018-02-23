@@ -40,6 +40,7 @@ import sys
 import yaml
 import dataset.augment_data as ad
 import dataset.aux_scripts.util as util
+import arch.msg as msg
 
 
 class AbstractNetwork:
@@ -72,33 +73,79 @@ class AbstractNetwork:
                                              self.DATA["img_prop"]["width"]])
     return lbls_resized
 
-  def loss_f(self, lbls_pl, logits_train):
+  def loss_f(self, lbls_pl, logits_train, gamma_focal=2, w_t="log", w_d=1e-4):
     """Calculates the loss from the logits and the labels.
     """
     print("Defining loss function")
     with tf.variable_scope("loss"):
       lbls_resized = self.resize_label(lbls_pl)
-      # scale the logits by their weights, depending on class content of the
-      # entire dataset (calculated previously)
+
+      # Apply median freq balancing (median frec / freq(class))
       w = np.empty(len(self.dataset.train.content))
-      epsilon = 0.0001
-      for key in self.dataset.train.content:
-        w[self.DATA["label_remap"][key]] = 1 / \
-            (self.dataset.train.content[key] + epsilon)
-      print("Weights for loss function: ", w)
+
+      if w_t == "log":
+        # get the frequencies and weights
+        for key in self.dataset.train.content:
+          e = 1.02  # max weight = 50
+          f_c = self.dataset.train.content[key]
+          w[self.DATA["label_remap"][key]] = 1 / np.log(f_c + e)
+        print("\nWeights for loss function (1/log(frec(c)+e)):\n", w)
+
+      elif w_t == "median_freq":
+        # get the frequencies
+        f = np.empty(len(self.dataset.train.content))
+        for key in self.dataset.train.content:
+          e = 0.001
+          f_c = self.dataset.train.content[key]
+          f[self.DATA["label_remap"][key]] = f_c
+          w[self.DATA["label_remap"][key]] = 1 / (f_c + e)
+
+        # calculate the median frequencies and normalize
+        median_freq = np.median(f)
+        print("\nFrequencies of classes:\n", f)
+        print("\nMedian freq:\n", median_freq)
+        print("\nWeights for loss function (1/frec(c)):\n", w)
+        w = median_freq * w
+        print("\nWeights for loss function (median frec/frec(c)):\n", w)
+      else:
+        print("Using natural weights, since no valid loss option was given.")
+        w.fill(1.0)
+        for key in self.dataset.train.content:
+          if self.dataset.train.content[key] == float("inf"):
+            w[self.DATA["label_remap"][key]] = 0
+        print("weights: ", w)
+
+      # use class weights as tf constant
       w_tf = tf.constant(w, dtype=tf.float32, name='class_weights')
 
-      # make the labels one-hot for the cross-entropy
-      onehot_lbls = tf.one_hot(lbls_resized, self.num_classes)
+      # make logits softmax matrixes for loss
+      loss_epsilon = tf.constant(value=1e-10)
+      softmax = tf.nn.softmax(logits_train)
+      softmax_mat = tf.reshape(softmax, (-1, self.num_classes))
 
-      # create the loss function
-      cross_entropy = tf.nn.weighted_cross_entropy_with_logits(
-          targets=onehot_lbls,
-          logits=logits_train,
-          pos_weight=w_tf,
-          name='weight_cross_entropy')
+      # make the labels one-hot for the cross-entropy
+      onehot_mat = tf.reshape(tf.one_hot(lbls_resized, self.num_classes),
+                              (-1, self.num_classes))
+
+      # focal loss p and gamma
+      gamma = np.full(onehot_mat.get_shape().as_list(), fill_value=gamma_focal)
+      gamma_tf = tf.constant(gamma, dtype=tf.float32)
+      focal_softmax = tf.pow(
+          1 - softmax_mat, gamma_tf) * tf.log(softmax_mat + loss_epsilon)
+
+      # calculate xentropy
+      cross_entropy = - tf.reduce_sum(
+          tf.multiply(focal_softmax * onehot_mat, w_tf), axis=[1])
+
       loss = tf.reduce_mean(cross_entropy, name='xentropy_mean')
 
+      # weight decay
+      print("Weight decay: ", w_d)
+      w_d_tf = tf.constant(w_d, dtype=tf.float32, name='weight_decay')
+      variables = tf.trainable_variables(scope="model")
+      for var in variables:
+        if "weights" in var.name:
+          loss += w_d_tf * tf.nn.l2_loss(var)
       return loss
 
   def average_gradients(self, tower_grads):
@@ -403,7 +450,8 @@ class AbstractNetwork:
       # import uff from tensorflow frozen and save as uff file
       uff.from_tensorflow_frozen_model(out_opt_tensorRT_graph_name,
                                        [logits_node],
-                                       input_nodes=[input_norm_and_resized_node],
+                                       input_nodes=[
+                                           input_norm_and_resized_node],
                                        output_filename=uff_opt_tensorRT_graph_name)
     except:
       print("Error saving TensorRT UFF model")
@@ -968,7 +1016,8 @@ class AbstractNetwork:
       with tf.variable_scope("trainstep"):
         self.optimizer = tf.train.AdamOptimizer(learning_rate=self.learn_rate_var,
                                                 beta1=self.TRAIN["decay1"],
-                                                beta2=self.TRAIN["decay2"])
+                                                beta2=self.TRAIN["decay2"],
+                                                epsilon=self.TRAIN["epsilon"])
 
       # inititialize inference graph
       self.logits_train_list = []
@@ -998,12 +1047,30 @@ class AbstractNetwork:
 
               # define the loss function, and calculate the gradients
               with tf.name_scope("loss_%d" % i):
-                loss = self.loss_f(lbls_pl, logits_train)
-                grads = self.optimizer.compute_gradients(loss)
+                loss = self.loss_f(lbls_pl, logits_train, self.TRAIN["gamma"],
+                                   self.TRAIN["loss"], self.TRAIN["w_decay"])
+                if self.TRAIN["grads"] == "speed":
+                  # calculate tower grads by using OpenAI's implementation
+                  # of checkpointed gradients (better for memory)
+                  grads = msg.gradients_speed(
+                      loss, tf.trainable_variables(), gate_gradients=True)
+                elif self.TRAIN["grads"] == "mem":
+                  # calculate tower grads by using OpenAI's implementation
+                  # of checkpointed gradients (better for speed)
+                  grads = msg.gradients_memory(
+                      loss, tf.trainable_variables(), gate_gradients=True)
+                elif self.TRAIN["grads"] == "tf":
+                  # calculate tower grads by using TF implementation
+                  print("Using tensorflow gradients")
+                  grads = tf.gradients(
+                      loss, tf.trainable_variables())
+                else:
+                  print("Gradient option not supported. Check config")
+                grads_and_vars = list(zip(grads, tf.trainable_variables()))
 
               # append to the list of gradients and losses
               self.losses.append(loss)
-              self.tower_grads.append(grads)
+              self.tower_grads.append(grads_and_vars)
 
               # Reuse variables for the next tower.
               tf.get_variable_scope().reuse_variables()
@@ -1049,7 +1116,7 @@ class AbstractNetwork:
 
         # Add histograms for gradients.
         if self.TRAIN['summary']:
-          for grad, var in grads:
+          for grad, var in self.grads:
             if grad is not None:
               tf.summary.histogram(var.op.name + '/gradients', grad)
 
