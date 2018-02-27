@@ -110,9 +110,22 @@ The pretrained models with a specific dataset keep the copyright of such dataset
 
 ## Citation
 
-If you use our framework for any academic work, please cite its paper.
+If you use our framework for any academic work, please cite its [paper](https://arxiv.org/abs/1802.08960).
 
-[Link here - TODO!](TODO!)
+```
+@article{milioto2018arxiv,
+   author = {A. Milioto and C. Stachniss},
+    title = "{Bonnet: An Open-Source Training and Deployment Framework for Semantic Segmentation in Robotics using CNNs}",
+  journal = {ArXiv e-prints},
+archivePrefix = "arXiv",
+   eprint = {1802.08960},
+ primaryClass = "cs.RO",
+ keywords = {Computer Science - Robotics, Computer Science - Computer Vision and Pattern Recognition},
+     year = 2018,
+    month = feb,
+      url = {https://arxiv.org/abs/1802.08960}
+}
+```
 
 Our networks are strongly based on the following architectures, so if you
 use them for any academic work, please give a look at their papers and cite them
