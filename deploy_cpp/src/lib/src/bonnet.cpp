@@ -89,7 +89,7 @@ Bonnet::Bonnet(const std::string& path, const std::string backend,
     // set verbosity
     _net->verbosity(_verbose);
 #else
-    throw std::invalid_argument("Backend supported but not built: " + _backend)
+    throw std::invalid_argument("Backend supported but not built: " + _backend);
 #endif  // TF_AVAIL
   } else if (backend == "trt") {
 #ifdef TRT_AVAIL
@@ -99,7 +99,7 @@ Bonnet::Bonnet(const std::string& path, const std::string backend,
     // set verbosity
     _net->verbosity(verbose);
 #else
-    throw std::invalid_argument("Backend supported but not built: " + _backend)
+    throw std::invalid_argument("Backend supported but not built: " + _backend);
 #endif  // TRT_AVAIL
   } else {
     throw std::invalid_argument("Backend not supported: " + _backend);
