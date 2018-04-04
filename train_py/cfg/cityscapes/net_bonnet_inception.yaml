@@ -1,6 +1,6 @@
 # network cfg file
 name: "bonnet_inception"
-dropout: 0.1
+dropout: 0.2
 bn_decay: 0.9
 n_k_lyr: # contains the amount of filters of each layer (res-incept doesn't need it)
   - 32  # block 1 3x3 downsample

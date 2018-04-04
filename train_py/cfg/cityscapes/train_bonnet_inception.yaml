@@ -5,9 +5,9 @@ gamma: 1            # gamma for focal loss
 lr: 0.0005          # learning rate
 decay1: 0.9         # decay for first order momentum
 decay2: 0.999       # decay for second order momentum
-epsilon: 0.0001     # epsilon for adam
-w_decay: 0.00001    # weight decay
-lr_decay:  50       # decay learning rate every x epochs
+epsilon: 0.0000001  # epsilon for adam
+w_decay: 0.0000001  # weight decay
+lr_decay:  100      # decay learning rate every x epochs
 lr_rate: 2          # decay to 1/x every epoch
 acc_report_epochs: 10 # every x steps, report accuracy
 batch_size: 20      # batch size

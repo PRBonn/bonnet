@@ -4,8 +4,8 @@ data_dir: "/cache/datasets/cityscapes/dataset"
 buff: True            # if this is true we buffer buff_n images in a fifo
 buff_nr: 3000         # number of images to keep in fifo (prefetch batch) <-should be bigger than batch size to make sense
 img_prop:
-  width: 1024
-  height: 512
+  width: 768
+  height: 384
   depth: 3            # number of channels in original image
 force_resize: True   # if dataset contains images of different size, it should be True
 force_remap: False
