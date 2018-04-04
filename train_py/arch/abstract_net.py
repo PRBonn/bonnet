@@ -117,25 +117,40 @@ class AbstractNetwork:
 
       # use class weights as tf constant
       w_tf = tf.constant(w, dtype=tf.float32, name='class_weights')
+      w_mask = w.astype(np.bool).astype(np.float32)
+      w_mask_tf = tf.constant(w_mask, dtype=tf.float32,
+                              name='class_weights_mask')
 
       # make logits softmax matrixes for loss
       loss_epsilon = tf.constant(value=1e-10)
       softmax = tf.nn.softmax(logits_train)
       softmax_mat = tf.reshape(softmax, (-1, self.num_classes))
+      zerohot_softmax_mat = 1 - softmax_mat
 
       # make the labels one-hot for the cross-entropy
       onehot_mat = tf.reshape(tf.one_hot(lbls_resized, self.num_classes),
                               (-1, self.num_classes))
 
+      # make the zero hot to punish the false negatives, but ignore the
+      # zero-weight classes
+      masked_sum = tf.reduce_sum(onehot_mat * w_mask_tf, axis=1)
+      zeros = onehot_mat * 0.0
+      zerohot_mat = tf.where(tf.less(masked_sum, 1e-5),
+                             x=zeros,
+                             y=1 - onehot_mat)
+
       # focal loss p and gamma
       gamma = np.full(onehot_mat.get_shape().as_list(), fill_value=gamma_focal)
       gamma_tf = tf.constant(gamma, dtype=tf.float32)
-      focal_softmax = tf.pow(
-          1 - softmax_mat, gamma_tf) * tf.log(softmax_mat + loss_epsilon)
+      focal_softmax = tf.pow(1 - softmax_mat, gamma_tf) * \
+          tf.log(softmax_mat + loss_epsilon)
+      zerohot_focal_softmax = tf.pow(1 - zerohot_softmax_mat, gamma_tf) * \
+          tf.log(zerohot_softmax_mat + loss_epsilon)
 
       # calculate xentropy
-      cross_entropy = - tf.reduce_sum(
-          tf.multiply(focal_softmax * onehot_mat, w_tf), axis=[1])
+      cross_entropy = - tf.reduce_sum(tf.multiply(focal_softmax * onehot_mat +
+                                                  zerohot_focal_softmax * zerohot_mat, w_tf),
+                                      axis=[1])
 
       loss = tf.reduce_mean(cross_entropy, name='xentropy_mean')
 
@@ -1131,7 +1146,9 @@ class AbstractNetwork:
               tf.summary.histogram(var.op.name + '/gradients', grad)
 
         # Apply the gradients to adjust the shared variables.
-        self.train_op = self.optimizer.apply_gradients(self.grads)
+        update_ops = tf.get_collection(tf.GraphKeys.UPDATE_OPS)
+        with tf.control_dependencies(update_ops):
+          self.train_op = self.optimizer.apply_gradients(self.grads)
 
       # define the best performance so far in the validation set
       self.best_acc_validation = 0

@@ -164,8 +164,7 @@ def conv_layer(input_tensor, kernel_nr, kernel_size, stride,
                                                 is_training=train,
                                                 data_format=data_format,
                                                 fused=True,
-                                                decay=bn_decay,
-                                                updates_collections=None)
+                                                decay=bn_decay)
       if summary:
         variable_summaries(normalized)
   else:
@@ -280,8 +279,7 @@ def uERF_non_bt(input_tensor, kernel_size, train, summary=False, data_format="NC
                                                 is_training=train,
                                                 data_format=data_format,
                                                 fused=True,
-                                                decay=bn_decay,
-                                                updates_collections=None)
+                                                decay=bn_decay)
       if summary:
         variable_summaries(normalized)
 
