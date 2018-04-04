@@ -1,14 +1,14 @@
 # train cfg file
 max_epochs: 100000
-loss: "log"         # log (1/ln(fc+e)) or median_freq (median_fc/fc)
-gamma: 1            # gamma for focal loss
+loss: "log" # log (1/ln(fc+e)) or median_freq (median_fc/fc)
+gamma: 2            # gamma for focal loss
 lr: 0.0001          # learning rate
 decay1: 0.9         # decay for first order momentum
-decay2: 0.99        # decay for second order momentum
+decay2: 0.999       # decay for second order momentum
 epsilon: 0.00000001 # epsilon for adam
-w_decay: 0.0002     # weight decay
+w_decay: 0.000001   # weight decay
 lr_decay:  1        # decay learning rate every x epochs
-lr_rate: 1.005      # decay to 1/x every epoch
+lr_rate: 1.01       # decay to 1/x every epoch
 acc_report_epochs: 10 # every x steps, report accuracy
 batch_size: 20      # batch size
 gpus: 4             # number of gpus to use

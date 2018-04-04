@@ -2,15 +2,15 @@
 max_epochs: 100000
 loss: "median_freq" # log (1/ln(fc+e)) or median_freq (median_fc/fc)
 gamma: 2            # gamma for focal loss
-lr: 0.0003          # learning rate
+lr: 0.001           # learning rate
 decay1: 0.9         # decay for first order momentum
-decay2: 0.99        # decay for second order momentum
+decay2: 0.999       # decay for second order momentum
 epsilon: 0.00000001 # epsilon for adam
-w_decay: 0.000001   # weight decay
-lr_decay:  1        # decay learning rate every x epochs
-lr_rate: 1.01       # decay to 1/x every epoch
+w_decay: 0.0        # weight decay
+lr_decay:  10       # decay learning rate every x epochs
+lr_rate: 1.5        # decay to 1/x every epoch
 acc_report_epochs: 10 # every x steps, report accuracy
-batch_size: 40      # batch size
+batch_size: 60      # batch size
 gpus: 2             # number of gpus to use
 save_imgs: True     # False doesn't save anything, True saves some 
                     # sample images (one per batch of the last calculated batch)

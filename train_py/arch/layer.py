@@ -242,6 +242,117 @@ def asym_conv_layer(input_tensor, kernel_nr, kernel_size, train, summary=False, 
   return output
 
 
+def inception(input_tensor, train, summary=False, data_format="NCHW", dropout=0.3, bn_decay=0.95):
+  """Builds a NEW full asymmetric conv layer non-bt, with variables and relu.
+  Args:
+    input_tensor: input tensor
+    train: If we want to train this layer or not
+    data_format: Self explanatory
+  Returns:
+    output: Output tensor from the convolution
+  """
+  if data_format == "NCHW":
+    # depth of previous layer feature map
+    prev_depth = input_tensor.get_shape().as_list()[1]
+  else:
+    # depth of previous layer feature map
+    prev_depth = input_tensor.get_shape().as_list()[3]
+
+  if prev_depth % 4:
+    print("Warning! Depth cannot be divided by 4 in inception module")
+
+  # kernel number to match input
+  kernel_nr = int(prev_depth / 4)
+
+  with tf.variable_scope('inception'):
+    with tf.variable_scope('bottleneck'):
+      bt = conv_layer(input_tensor, kernel_nr, [1, 1],
+                      1, train, summary=summary, bnorm=False,
+                      relu=False, data_format=data_format)
+
+    with tf.variable_scope('3x3'):
+      asym3 = asym_conv_layer(bt, kernel_nr * 2, 3,
+                              train, summary=summary, bnorm=False,
+                              relu=False, data_format=data_format)
+
+    with tf.variable_scope('5x5'):
+      asym5 = asym_conv_layer(bt, kernel_nr, 5,
+                              train, summary=summary, bnorm=False,
+                              relu=False, data_format=data_format)
+
+    with tf.variable_scope('7x7'):
+      asym7 = asym_conv_layer(bt, kernel_nr, 7,
+                              train, summary=summary, bnorm=False,
+                              relu=False, data_format=data_format)
+
+    with tf.variable_scope('concat'):
+      if data_format == "NCHW":
+        concat = tf.concat([asym3, asym5, asym7], 1)
+      else:
+        concat = tf.concat([asym3, asym5, asym7], 3)
+
+    with tf.variable_scope('batchnorm'):
+      # use batch renorm for small minibatches
+      normalized = tf.contrib.layers.batch_norm(concat,
+                                                center=True, scale=True,
+                                                is_training=train,
+                                                data_format=data_format,
+                                                fused=True,
+                                                decay=bn_decay,
+                                                renorm=True)
+      if summary:
+        variable_summaries(normalized)
+
+    # add the residual
+    with tf.variable_scope('out'):
+      drop = spatial_dropout(normalized, keep_prob=1 - dropout,
+                             training=train, data_format=data_format)
+      output = tf.nn.leaky_relu(drop)
+
+  return output
+
+
+def dense_inception(input_tensor, n_blocks, train, summary=False, data_format="NCHW", dropout=0.3, bn_decay=0.95):
+  """Builds a NEW full asymmetric conv layer non-bt, with variables and relu.
+  Args:
+    input_tensor: input tensor
+    n_blocks: number of layers inside block
+    train: If we want to train this layer or not
+    data_format: Self explanatory
+  Returns:
+    output: Output tensor from the convolution
+  """
+  with tf.variable_scope('dense_inception'):
+    if data_format == "NCHW":
+      # depth of previous layer feature map
+      prev_depth = input_tensor.get_shape().as_list()[1]
+    else:
+      # depth of previous layer feature map
+      prev_depth = input_tensor.get_shape().as_list()[3]
+
+    blocks = input_tensor
+    for b in range(n_blocks):
+      with tf.variable_scope('skip_conv_' + str(b)):
+        out_block = inception(blocks, train, summary=summary,
+                              data_format=data_format, dropout=dropout,
+                              bn_decay=bn_decay)
+        if data_format == "NCHW":
+          blocks = tf.concat([blocks, out_block], 1)
+        else:
+          blocks = tf.concat([blocks, out_block], 3)
+
+    # linear squash
+    with tf.variable_scope('squash'):
+      squash = conv_layer(blocks, prev_depth, [1, 1], 1, train,
+                          summary=summary, bnorm=False, relu=False,
+                          data_format=data_format)
+
+    with tf.variable_scope('res'):
+      output = squash + input_tensor
+
+  return output
+
+
 def uERF_non_bt(input_tensor, kernel_size, train, summary=False, data_format="NCHW", dropout=0.3, bn_decay=0.95):
   """Builds a NEW full asymmetric conv layer non-bt, with variables and relu.
   Args:

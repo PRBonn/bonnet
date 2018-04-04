@@ -1,7 +1,7 @@
 # network cfg file
 name: "bonnet"
 dropout: 0.1
-bn_decay: 0.9
+bn_decay: 0.99
 n_k_lyr: # contains the amount of filters of each layer (non-bt-doesn't need it)
   - 16  # block 1 3x3 downsample
   - 48  # block 2 3x3 downsample

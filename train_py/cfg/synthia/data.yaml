@@ -43,8 +43,8 @@ color_map:            # bgr
   200: [0,64,64]
   220: [192,128,0]
 img_prop:
-  width: 960
-  height: 720
+  width: 512
+  height: 384
   depth: 3            # number of channels in original image
 force_resize: True    # if dataset contains images of different size, it should be True
 force_remap: False
