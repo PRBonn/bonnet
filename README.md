@@ -7,6 +7,7 @@ By [Andres Milioto](http://www.ipb.uni-bonn.de/people/andres-milioto/) @ Univers
 ![Image of cityscapes](https://image.ibb.co/i5tEQR/CITY.png)
 Cityscapes Urban Scene understanding.
 - [Standalone Video Predictor - 512x256px](https://youtu.be/RXK_eYO_i08)
+- [Standalone Video Predictor - 768x384px (inception model)](https://youtu.be/3qD-GR87usw)
 - [Standalone Video Predictor - 1024x512px](https://youtu.be/tfeFHCq6YJs)
 
 ![Image of cwc](https://image.ibb.co/fcKXC6/CWC.png)
@@ -79,7 +80,7 @@ gladly train it whenever I have some free GPU time in our servers.
 
 - Cityscapes:
   - 512x256 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_512.tar.gz)
-  - 768x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_768.tar.gz)
+  - 768x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_768.tar.gz) (inception model)
   - 1024x512 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_1024.tar.gz)
 - Synthia:
   - 512x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/synthia_512.tar.gz)
