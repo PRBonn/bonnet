@@ -6,7 +6,7 @@ stages:
 build:
   stage: build
   script:
-  - ./test.sh
+  - cp -r /builds/ipb-tools/bonnet /bonnet && ./test.sh
 
   tags:
   - docker

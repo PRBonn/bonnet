@@ -40,6 +40,7 @@ All scripts have been tested on the following configurations:
 We also provide a Dockerfile to make it easy to run without worrying about the dependencies, which is based on the official nvidia/cuda image containing cuda9 and cudnn7. In order to build and run this image with support for X11 (to display the results), you can run this in the repo root directory ([nvidia-docker](https://github.com/NVIDIA/nvidia-docker) should be used instead of vainilla docker):
 
 ```sh
+  $ docker pull tano297/bonnet:cuda9-cudnn7-tf17-trt304
   $ nvidia-docker build -t bonnet .
   $ nvidia-docker run -ti --rm -e DISPLAY -v /tmp/.X11-unix:/tmp/.X11-unix -v $HOME/.Xauthority:/home/developer/.Xauthority -v /home/$USER/data:/shared --net=host --pid=host --ipc=host bonnet /bin/bash
 ```

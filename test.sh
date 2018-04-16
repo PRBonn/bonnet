@@ -8,6 +8,7 @@ export LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64:/usr/local/nvidia/lib:/usr/loca
 source /opt/ros/kinetic/setup.bash
 
 # build
-cd deploy_cpp
+cd /bonnet/deploy_cpp
+pwd
 catkin init
 catkin build
