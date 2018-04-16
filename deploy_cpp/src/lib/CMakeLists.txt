@@ -8,7 +8,7 @@ endif()
 
 set(CMAKE_CXX_FLAGS "-Wall")
 set(CMAKE_CXX_FLAGS_DEBUG "-g -O0")
-set(CMAKE_CXX_FLAGS_RELEASE "-O3")
+set(CMAKE_CXX_FLAGS_RELEASE "-O0")
 
 ## Use C++11
 add_definitions(-std=c++11 -Wfatal-errors)

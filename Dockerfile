@@ -1,5 +1,5 @@
 # Use an official Python runtime as a parent image
-FROM tano297/bonnet:cuda9-cudnn7
+FROM tano297/bonnet:cuda9-cudnn7-tf17-trt304
 
 # recommended from nvidia to use the cuda devices
 LABEL com.nvidia.volumes.needed="nvidia_driver"
@@ -31,15 +31,12 @@ RUN chmod 755 $HOME/bonnet_wrkdir
 USER developer
 RUN cp /etc/skel/.bashrc /home/developer/
 RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/developer/.bashrc
+RUN echo 'export PYTHONPATH=/usr/local/lib/python3.5/dist-packages/cv2/:$PYTHONPATH' >> /home/developer/.bashrc
 
 # run the standalone build
 ENV LD_LIBRARY_PATH /usr/local/cuda-9.0/lib64:$LD_LIBRARY_PATH
 ENV PATH /usr/local/cuda-9.0/bin:$PATH
 ENTRYPOINT ["/bin/bash","-c"]
-CMD ["source /opt/ros/kinetic/setup.bash && \
-      cd deploy_cpp/standalone && \
-      mkdir -p build && cd build && rm -rf ./* && \
-      cmake .. && make -j"]
 
 # for visual output build and run like
 # nvidia-docker build -t bonnet .

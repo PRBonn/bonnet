@@ -94,12 +94,7 @@ retCode NetTF::init(const std::string& device, const float& mem_percentage) {
   tf::graph::SetDefaultDevice(_dev, &_graph_def);
   _opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(
       mem_percentage);
-  _opts.config.mutable_gpu_options()->set_per_process_gpu_memory_fraction(
-      mem_percentage);
   _opts.config.mutable_gpu_options()->set_allow_growth(true);
-  _opts.config.mutable_graph_options()
-      ->mutable_optimizer_options()
-      ->set_global_jit_level(tf::OptimizerOptions::ON_2);
   _opts.config.set_allow_soft_placement(true);
 
   // Start a session

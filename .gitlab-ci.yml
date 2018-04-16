@@ -1,4 +1,4 @@
-image: tano297/bonnet:cuda9-cudnn7
+image: tano297/bonnet:cuda9-cudnn7-tf17-trt304
 
 stages:
   - build

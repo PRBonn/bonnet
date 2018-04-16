@@ -2,7 +2,7 @@ services:
   - docker
 
 before_script:
-  - docker pull tano297/bonnet:cuda9-cudnn7
+  - docker pull tano297/bonnet:cuda9-cudnn7-tf17-trt304
 
 script:
-  - docker run -it  -v ${PWD}:/bonnet/ tano297/bonnet:cuda9-cudnn7 /bin/bash -c "/bonnet/test.sh"
+  - docker run -it  -v ${PWD}:/bonnet/ tano297/bonnet:cuda9-cudnn7-tf17-trt304 /bin/bash -c "/bonnet/test.sh"

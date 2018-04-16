@@ -9,21 +9,15 @@ work with files to augment datasets and so on.
 
 ## Dependencies
 
-- Python stuff:
+- Python stuff (and tf profiler):
   
 ```sh
-  $ sudo apt install libav-tools ffmpeg
-  $ sudo pip3 install opencv-python sk-video numpy colorama pyyaml matplotlib scipy toposort
-  $ export PYTHONPATH=/usr/local/lib/python3.5/dist-packages:$PYTHONPATH # Needed if you have ROS Kinetic installed
+  $ sudo apt install libav-tools ffmpeg libcupti-dev
+  $ sudo pip3 install -r requirements.txt
+  $ export PYTHONPATH=/usr/local/lib/python3.5/dist-packages/cv2/:$PYTHONPATH # Needed if you have ROS Kinetic installed
 ```
 
 - Tensorflow (Follow link, it is complete for install of CUDA, CUDNN, etc): [Link](https://www.tensorflow.org/install/install_linux)
-
-- For tensorflow profiler stuff (needed when running in verbose mode):
-
-```sh
-$ sudo apt install libcupti-dev
-```
 
 - If the tensorRT backend to run with higher performance is desired you neet to install it:
   - TensorRT [Download](https://developer.nvidia.com/nvidia-tensorrt-download)

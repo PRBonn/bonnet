@@ -32,9 +32,9 @@ a slight accuracy loss. Feel free to use it as a model to implement your own
 architecture.
 
 All scripts have been tested on the following configurations:
-- x86 Ubuntu 16.04 with an NVIDIA GeForce 940MX GPU (nvidia-384, CUDA8, CUDNN6, TF 1.4.1, TensorRT3)
-- x86 Ubuntu 16.04 with an NVIDIA GTX1080Ti GPU (nvidia-375, CUDA8, CUDNN6, TF 1.4.1, TensorRT3)
-- x86 Ubuntu 16.04 and 14.04 with no GPU (TF 1.4.1, running on CPU in NHWC mode, no TensorRT support)
+- x86 Ubuntu 16.04 with an NVIDIA GeForce 940MX GPU (nvidia-384, CUDA9, CUDNN7, TF 1.7, TensorRT3)
+- x86 Ubuntu 16.04 with an NVIDIA GTX1080Ti GPU (nvidia-375, CUDA9, CUDNN7, TF 1.7, TensorRT3)
+- x86 Ubuntu 16.04 and 14.04 with no GPU (TF 1.7, running on CPU in NHWC mode, no TensorRT support)
 - Jetson TX2 (full Jetpack 3.2)
 
 We also provide a Dockerfile to make it easy to run without worrying about the dependencies, which is based on the official nvidia/cuda image containing cuda9 and cudnn7. In order to build and run this image with support for X11 (to display the results), you can run this in the repo root directory ([nvidia-docker](https://github.com/NVIDIA/nvidia-docker) should be used instead of vainilla docker):
