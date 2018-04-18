@@ -6,6 +6,9 @@ LABEL com.nvidia.volumes.needed="nvidia_driver"
 ENV PATH /usr/local/nvidia/bin:/usr/local/cuda/bin:${PATH}
 ENV LD_LIBRARY_PATH /usr/local/nvidia/lib:/usr/local/nvidia/lib64
 
+# install missing small dependencies
+RUN apt install python3-tk -y
+
 # Replace 1000 with your user / group id (if needed)
 RUN export uid=1000 gid=1000 && \
 mkdir -p /home/developer && \
@@ -14,7 +17,8 @@ echo "developer:x:${uid}:${gid}:Developer,,,:/home/developer:/bin/bash" >> /etc/
 echo "developer:x:${uid}:" >> /etc/group && \
 echo "developer ALL=(ALL) NOPASSWD: ALL" > /etc/sudoers.d/developer && \
 chmod 0440 /etc/sudoers.d/developer && \
-chown ${uid}:${gid} -R /home/developer
+chown ${uid}:${gid} -R /home/developer && \
+adduser developer sudo
 
 # Set the working directory to $HOME/bonnet_wrkdir
 ENV HOME /home/developer
@@ -29,12 +33,17 @@ RUN chmod 755 $HOME/bonnet_wrkdir
 
 # user stuff (and env variables)
 USER developer
-RUN cp /etc/skel/.bashrc /home/developer/
-RUN echo 'source /opt/ros/kinetic/setup.bash' >> /home/developer/.bashrc
-RUN echo 'export PYTHONPATH=/usr/local/lib/python3.5/dist-packages/cv2/:$PYTHONPATH' >> /home/developer/.bashrc
+RUN cp /etc/skel/.bashrc /home/developer/ && \
+    echo 'source /opt/ros/kinetic/setup.bash' >> /home/developer/.bashrc && \
+    echo 'export PYTHONPATH=/usr/local/lib/python3.5/dist-packages/cv2/:$PYTHONPATH' >> /home/developer/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda-9.0/lib64:$LD_LIBRARY_PATH' >> /home/developer/.bashrc && \
+    echo 'export LD_LIBRARY_PATH=/usr/local/cuda/extras/CUPTI/lib64/:$LD_LIBRARY_PATH' >> /home/developer/.bashrc && \
+    echo 'export NO_AT_BRIDGE=1' >> /home/developer/.bashrc && \
+    sudo ls 
 
 # run the standalone build
 ENV LD_LIBRARY_PATH /usr/local/cuda-9.0/lib64:$LD_LIBRARY_PATH
+ENV LD_LIBRARY_PATH /usr/local/cuda/extras/CUPTI/lib64/:$LD_LIBRARY_PATH
 ENV PATH /usr/local/cuda-9.0/bin:$PATH
 ENTRYPOINT ["/bin/bash","-c"]
 
