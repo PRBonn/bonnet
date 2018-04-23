@@ -1127,6 +1127,13 @@ class AbstractNetwork:
 
               print('*' * 80)
 
+      # print number of parameters (just a check)
+      n_parameters = 0
+      for var in tf.get_collection(tf.GraphKeys.GLOBAL_VARIABLES, scope='model'):
+        var_params = np.prod(var.get_shape().as_list())
+        n_parameters += var_params
+      print("Total number of parameters in network: ", n_parameters)
+
       with tf.variable_scope("optimizer", reuse=tf.AUTO_REUSE):
         # We must calculate the mean of each gradient. Note that this is the
         # synchronization point across all towers.
