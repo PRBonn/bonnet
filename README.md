@@ -81,7 +81,8 @@ gladly train it whenever I have some free GPU time in our servers.
 
 - Cityscapes:
   - 512x256 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_512.tar.gz)
-  - 768x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_768.tar.gz) (inception model)
+  - 768x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_768_inception.tar.gz) (inception-like model)
+  - 768x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_768_mobilenets.tar.gz) (mobilenets-like model)
   - 1024x512 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/city_1024.tar.gz)
 - Synthia:
   - 512x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/synthia_512.tar.gz)

@@ -1,0 +1,33 @@
+# network cfg file
+name: "bonnet_mobilenets"
+dropout: 0.1
+bn_decay: 0.99
+n_k_lyr: # contains the amount of filters of each layer (res-incept doesn't need it)
+  - 16  # block 1 3x3 downsample
+  - 4   # block 1 3x3 separable layers channel multiplier
+  - 64  # block 2 3x3 downsample
+  - 4   # block 2 3x3 separable layers channel multiplier
+  - 256 # block 3 3x3 downsample
+  - 6   # block 3 3x3 separable layers channel multiplier
+  - 64  # unpool block 1 2x2 upsample
+  - 2   # unpool block 1 3x3 separable layers channel multiplier
+  - 16  # unpool block 2 2x2 upsample
+  - 2   # unpool block 2 3x3 separable layers channel multiplier
+  - 16  # unpool block 3 2x2 upsample
+  - 2   # unpool block 3 3x3 separable layers channel multiplier
+n_lyr: # contains the amount of filter blocks of each dense layer
+  - 4  # block 1 n layers
+  - 8  # block 2 n layers
+  - 16 # block 3 n layers
+  - 8  # unpool block 1 n layers
+  - 4  # unpool block 2 n layers
+  - 2  # unpool block 3 n layers
+train_lyr:          # boolean list of layers to train, starting by the first conv
+  - True  # block 1 downsample
+  - True  # block 2 downsample
+  - True  # block 3 downsample
+  - True  # block 1 upsample
+  - True  # block 2 upsample
+  - True  # block 3 upsample
+  - True  # linear classifier
+  

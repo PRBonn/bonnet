@@ -153,7 +153,8 @@ def conv_layer(input_tensor, kernel_nr, kernel_size, stride,
       variable_summaries(W)
 
   with tf.variable_scope('convolution'):
-    preactivations = conv2d(input_tensor, W, stride, data_format=data_format)
+    preactivations = conv2d(input_tensor, W, stride,
+                            data_format=data_format)
     if summary:
       variable_summaries(preactivations)
 
@@ -349,6 +350,75 @@ def dense_inception(input_tensor, n_blocks, train, summary=False, data_format="N
 
     with tf.variable_scope('res'):
       output = squash + input_tensor
+
+  return output
+
+
+def inv_residual(input_tensor, channel_mult, train, summary=False,
+                 data_format="NCHW", dropout=0.3, bn_decay=0.95):
+  """Builds a NEW full asymmetric conv layer non-bt, with variables and relu.
+  Args:
+    input_tensor: input tensor
+    channel_mult: number of filters in each inverted residual (ratio with input filters)
+    train: If we want to train this layer or not
+    data_format: Self explanatory
+  Returns:
+    output: Output tensor from the convolution
+  """
+  if data_format == "NCHW":
+    # depth of previous layer feature map
+    prev_depth = input_tensor.get_shape().as_list()[1]
+  else:
+    # depth of previous layer feature map
+    prev_depth = input_tensor.get_shape().as_list()[3]
+
+  # number filters
+  n_filters = channel_mult * prev_depth
+
+  with tf.variable_scope("inverted_residual"):
+    with tf.variable_scope("conv"):
+      with tf.variable_scope("bnorm"):
+        conv_norm = tf.contrib.layers.batch_norm(input_tensor,
+                                                 center=True, scale=True,
+                                                 is_training=train,
+                                                 data_format=data_format,
+                                                 fused=True,
+                                                 decay=bn_decay)
+
+      with tf.variable_scope("conv"):
+        with tf.variable_scope("depthwise_filter"):
+          depthwise_filter = weight_variable([3, 3, prev_depth, channel_mult], train)
+          if summary:
+            variable_summaries(depthwise_filter)
+        with tf.variable_scope("pointwise_filter"):
+          pointwise_filter = weight_variable(
+              [1, 1, n_filters, prev_depth], train)
+          if summary:
+            variable_summaries(pointwise_filter)
+        with tf.variable_scope("conv"):
+          if data_format == "NCHW":
+            conv = tf.nn.separable_conv2d(conv_norm,
+                                          depthwise_filter,
+                                          pointwise_filter,
+                                          strides=[1, 1, 1, 1],
+                                          padding="SAME",
+                                          data_format="NCHW")
+          else:
+            conv = tf.nn.separable_conv2d(conv_norm,
+                                          depthwise_filter,
+                                          pointwise_filter,
+                                          strides=[1, 1, 1, 1],
+                                          padding="SAME",
+                                          data_format="NHWC")
+
+      with tf.variable_scope("residual"):
+        dropout = spatial_dropout(conv, keep_prob=1 - dropout,
+                                  training=train, data_format=data_format)
+
+        residual = dropout + input_tensor
+
+      with tf.variable_scope("out"):
+        output = tf.nn.leaky_relu(residual)
 
   return output
 
