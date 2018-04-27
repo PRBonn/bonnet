@@ -60,6 +60,12 @@ class ImgFetcher(threading.Thread):
                         for i in np.arange(0, 256)]).astype("uint8")
       img = cv2.LUT(img, table)
 
+    # blur
+    blur = bool(random.getrandbits(1))
+    if blur:
+      ksize = random.randint(3, 7)
+      img = cv2.blur(img,(ksize,ksize))
+
     return img, lbl
 
   def run(self):
