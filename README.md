@@ -10,9 +10,16 @@ Cityscapes Urban Scene understanding.
 - [Standalone Video Predictor - 768x384px (inception model)](https://youtu.be/3qD-GR87usw)
 - [Standalone Video Predictor - 1024x512px](https://youtu.be/tfeFHCq6YJs)
 
+![Image of Persons](https://image.ibb.co/nJRa3c/github_bruno.png)
+Person Segmentation
+- [Uptown funk (inception model)](https://photos.app.goo.gl/Ls3MkCo2Cwhc6pVT2)
+- [Can't stop the feeling (inception model)](https://photos.app.goo.gl/Mi4N4zLrTyyDRqv48)
+
+
 ![Image of cwc](https://image.ibb.co/fcKXC6/CWC.png)
 Crop vs. Weed Semantic Segmentation.
 - [ROS node prediction - Video](https://youtu.be/-XgxiC04hUI)
+
 
 ## Description
 
