@@ -1,0 +1,21 @@
+# train cfg file
+max_epochs: 100000
+loss: "log"         # log (1/ln(fc+e)) or median_freq (median_fc/fc)
+gamma: 2            # gamma for focal loss
+lr: 0.0001          # learning rate
+decay1: 0.9         # decay for first order momentum
+decay2: 0.999       # decay for second order momentum
+epsilon: 0.0001     # epsilon for adam
+w_decay: 0.000001   # weight decay
+lr_decay:  10       # decay learning rate every x epochs
+lr_rate: 2          # decay to 1/x every epoch
+acc_report_epochs: 3 # every x steps, report accuracy
+batch_size: 36      # batch size
+gpus: 4             # number of gpus to use
+save_imgs: True     # False doesn't save anything, True saves some 
+                    # sample images (one per batch of the last calculated batch)
+                    # in log folder
+summary: False      # verbose summary
+summary_freq: 50    # steps for summary
+grads: "speed"      # speed, mem, or tf, for speed optimized, memory optimized, or vanilla tensorflow
+ignore_crap: False  # last class in cityscapes is crap, therefore we want to ignore it in the metrics

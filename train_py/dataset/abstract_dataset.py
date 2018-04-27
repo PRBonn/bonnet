@@ -68,7 +68,7 @@ class ImgFetcher(threading.Thread):
       # Fetch images
       # print self.dataset.images[self.dataset.idx]
       img = cv2.imread(
-          self.dataset.images[self.dataset.idx], cv2.IMREAD_UNCHANGED)
+          self.dataset.images[self.dataset.idx], cv2.IMREAD_COLOR)
       lbl = cv2.imread(self.dataset.labels[self.dataset.idx], 0)
       name = os.path.basename(self.dataset.images[self.dataset.idx])
 

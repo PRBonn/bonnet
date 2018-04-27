@@ -87,6 +87,10 @@ gladly train it whenever I have some free GPU time in our servers.
 - Synthia:
   - 512x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/synthia_512.tar.gz)
   - 960x720 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/synthia_960.tar.gz)
+
+- Persons (+coco people):
+  - 512x512 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/persons_512.tar.gz)
+
 - Crop-Weed (CWC):
   - 512x384 [Link](http://www.ipb.uni-bonn.de/html/projects/bonnet/pretrained-models/v0.2/cwc_512.tar.gz)
 
@@ -110,6 +114,8 @@ The pretrained models with a specific dataset keep the copyright of such dataset
 
 - Cityscapes: [Link](https://www.cityscapes-dataset.com)
 - Synthia: [Link](http://synthia-dataset.net)
+- Persons: [Link](https://supervise.ly)
+- Coco: [Link](http://cocodataset.org/#home)
 - Crop-Weed (CWC): [Link](http://www.ipb.uni-bonn.de/data/sugarbeets2016/)
 
 ## Citation

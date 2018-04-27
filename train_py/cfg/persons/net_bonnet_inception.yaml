@@ -1,0 +1,30 @@
+# network cfg file
+name: "bonnet_inception"
+dropout: 0.03
+bn_decay: 0.99
+n_k_lyr: # contains the amount of filters of each layer (res-incept doesn't need it)
+  - 32  # block 1 3x3 downsample
+  - 48  # block 2 3x3 downsample
+  - 64  # block 3 3x3 downsample
+  - 32  # block 1 upsample
+  - 32  # block 2 upsample
+  - 32  # block 3 upsample
+n_b_lyr: # contains the amount of filter blocks of each dense layer
+  - 1  # block 1 incept down
+  - 2  # block 2 incept down
+  - 4  # block 3 incept down
+  - 1  # block 1 incept up
+  - 1  # block 2 incept up
+  - 1  # block 3 incept up
+train_lyr:          # boolean list of layers to train, starting by the first conv
+  - True  # block 1 downsample
+  - True  # block 2 downsample
+  - True  # block 3 downsample
+  - True  # godeep
+  - True  # psp
+  - True  # block 1 upsample
+  - True  # block 2 upsample
+  - True  # block 3 upsample
+  - True  # multires
+  - True  # linear classifier
+  

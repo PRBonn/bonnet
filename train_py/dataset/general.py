@@ -76,7 +76,7 @@ def dir_to_data(directory, label_map, label_remap, new_shape=None, force_remap=F
 
   # check if image has a corresponding label, otherwise warn and continue
   for f in images[:]:
-    if f not in labels[:]:
+    if os.path.splitext(f)[0] not in [os.path.splitext(l)[0] for l in labels[:]]:
       # warn
       print("Image file %s has no label, GIMME DAT LABEL YO! Ignoring..." % f)
       # ignore image
@@ -86,7 +86,7 @@ def dir_to_data(directory, label_map, label_remap, new_shape=None, force_remap=F
       n_data += 1
       # calculate class content in the image
       # print("Calculating label content of label %s"%f)
-      l = cv2.imread(label_dir + f, 0)  # open label as grayscale
+      l = cv2.imread(label_dir + os.path.splitext(f)[0] + ".png", 0)  # open label as grayscale
       h, w = l.shape
       total_pix += h * w  # add to the total count of pixels in images
       # print("Number of pixels in image %s"%(h*w))
@@ -110,12 +110,12 @@ def dir_to_data(directory, label_map, label_remap, new_shape=None, force_remap=F
         # there were pixels that don't belong to our classes, so drop before
         # breaking our crossentropy
         print("Dropping image %s" % f)
-        labels.remove(f)
+        labels.remove(os.path.splitext(f)[0] + ".png")
         images.remove(f)
 
   # loop labels checking rogue labels with no images (magic label from ether)
   for f in labels[:]:
-    if f not in images[:]:
+    if os.path.splitext(f)[0] not in [os.path.splitext(i)[0] for i in images[:]]:
       # warn
       print("Label file %s has no image, IS THIS MAGIC?! Ignoring..." % f)
       # ignore image
@@ -174,6 +174,7 @@ def dir_to_data(directory, label_map, label_remap, new_shape=None, force_remap=F
   labels = [directory + '/lbl/remap/' + name for name in labels]
 
   # order to ensure matching (necessary?)
+  assert(len(new_images) == len(labels))
   new_images.sort()
   labels.sort()
 
