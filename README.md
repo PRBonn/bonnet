@@ -1,6 +1,6 @@
 # Bonnet: Tensorflow Convolutional Semantic Segmentation pipeline
 
-[![Build Status](https://travis-ci.org/Photogrammetry-Robotics-Bonn/bonnet.svg?branch=master)](https://travis-ci.org/Photogrammetry-Robotics-Bonn/bonnet)
+[![Build Status](https://travis-ci.org/PRBonn/bonnet.svg?branch=master)](https://travis-ci.org/PRBonn/bonnet)
 
 By [Andres Milioto](http://www.ipb.uni-bonn.de/people/andres-milioto/) @ University of Bonn.
 
