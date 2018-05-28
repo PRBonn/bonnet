@@ -45,9 +45,20 @@ IS NOT INSTALLED, IT IS NOT USED.**
 
 ## Usage
 
+#### Freezing your model to deploy using C++ backends
+
+Refer to the python train [readme](../train_py/README.md) section to see model freezing before starting to work!
+
+```sh
+$ cd train_py/
+$ ./cnn_freeze.py -p /tmp/path/to/pretrained -l /tmp/path/to/log
+```
+
+If you only want to deploy a model without the dependencies of the python section, you can try the docker container we provide in the main [readme](../README.md).
+
 #### Standalone examples
 
-We use catkin tools. These are example files to check the usage of your frozen models and your tensorflow install.
+We use catkin tools. These are example files to check the usage of your frozen model.
 
 ###### Build
 
