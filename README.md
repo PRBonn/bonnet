@@ -1,4 +1,4 @@
-# Bonnet: Tensorflow Convolutional Semantic Segmentation pipeline
+# Bonnet: An Open-Source Training and Deployment Framework for Semantic Segmentation in Robotics.
 
 [![Build Status](https://travis-ci.org/PRBonn/bonnet.svg?branch=master)](https://travis-ci.org/PRBonn/bonnet)
 
