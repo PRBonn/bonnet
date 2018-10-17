@@ -110,7 +110,8 @@ retCode NetTRT::init(const std::string& device, const float& mem_percentage) {
 
   // register the inputs and outputs
   nvinf::DimsCHW inputDims = {(int)d, (int)h, (int)w};
-  _parser->registerInput(_input_node.c_str(), inputDims);
+  _parser->registerInput(_input_node.c_str(), inputDims,
+                         uffpar::UffInputOrder::kNCHW);
   _parser->registerOutput(_output_node.c_str());
 
   // parse the model
@@ -128,11 +129,10 @@ retCode NetTRT::init(const std::string& device, const float& mem_percentage) {
     _builder->setMaxWorkspaceSize(1 << size);
     // fp16 engine disabled because it makes TX2 goes bananas in TRT3.
     // I will enable again when I have an answer from NVIDIA
-    // if (_fp16) _builder->setHalf2Mode(true);
+    if (_fp16) _builder->setHalf2Mode(true);
     _engine = _builder->buildCudaEngine(*_network);
     if (!_engine) {
-      std::cout << "Failed to create CUDA engine. Trying smaller workspace size"
-                << std::endl;
+      std::cout << "Failed to create CUDA engine. Trying smaller workspace size"                << std::endl;
       size--;
     }
   } while (!_engine && size >= 5);
