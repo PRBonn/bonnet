@@ -76,6 +76,26 @@ retCode Net::color(const cv::Mat& mask, cv::Mat& color_mask,
 }
 
 /**
+ * @brief      Blend image with color mask
+ *
+ * @param[in]  img         Image being inferred
+ * @param[in]  alpha       Constant for image
+ * @param[in]  color_mask  Color mask from CNN
+ * @param[in]  beta        Constant for color mask
+ * @param[out] blend       Output blend
+ * @param[in]  verbose     Verbose output? (such as time to run)
+ *
+ * @return     Exit code
+ */
+retCode Net::blend(const cv::Mat& img, const float& alpha,
+                   const cv::Mat& color_mask, const float& beta, cv::Mat& blend,
+                   const bool verbose) {
+  cv::addWeighted(img, alpha, color_mask, beta, 0.0, blend);
+
+  return CNN_OK;
+}
+
+/**
  * @brief      Generate dictionaries from yaml files
  *
  * @return     Exit code

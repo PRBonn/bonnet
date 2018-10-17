@@ -58,12 +58,14 @@ class netHandler {
   image_transport::Publisher bgr_publisher_;
   image_transport::Publisher mask_publisher_;
   image_transport::Publisher color_mask_publisher_;
+  image_transport::Publisher alpha_blend_publisher_;
 
   //! ROS topic names to subscribe to.
   std::string img_subscriber_topic_;
   std::string bgr_publisher_topic_;
   std::string mask_publisher_topic_;
   std::string color_mask_publisher_topic_;
+  std::string alpha_blend_publisher_topic_;
 
   //! CNN related stuff
   std::unique_ptr<Bonnet> net_;

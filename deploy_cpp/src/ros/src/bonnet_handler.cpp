@@ -28,6 +28,7 @@ netHandler::netHandler(ros::NodeHandle& nodeHandle)
   bgr_publisher_ = it_.advertise(bgr_publisher_topic_, 1);
   mask_publisher_ = it_.advertise(mask_publisher_topic_, 1);
   color_mask_publisher_ = it_.advertise(color_mask_publisher_topic_, 1);
+  alpha_blend_publisher_ = it_.advertise(alpha_blend_publisher_topic_, 1);
 
   ROS_INFO("Successfully launched node.");
 }
@@ -67,6 +68,8 @@ bool netHandler::readParameters() {
       !node_handle_.getParam("bgr_topic", bgr_publisher_topic_) ||
       !node_handle_.getParam("mask_topic", mask_publisher_topic_) ||
       !node_handle_.getParam("color_mask_topic", color_mask_publisher_topic_) ||
+      !node_handle_.getParam("alpha_blend_topic",
+                             alpha_blend_publisher_topic_) ||
       !node_handle_.getParam("model_path", path_) ||
       !node_handle_.getParam("verbose", verbose_) ||
       !node_handle_.getParam("device", device_) ||
@@ -123,6 +126,13 @@ void netHandler::imageCallback(const sensor_msgs::ImageConstPtr& img_msg) {
   sensor_msgs::ImagePtr color_mask_msg =
       cv_bridge::CvImage(img_msg->header, "bgr8", mask_bgr).toImageMsg();
   color_mask_publisher_.publish(color_mask_msg);
+
+  // Send the alpha blend
+  cv::Mat alpha_blend(mask_bgr.rows, mask_bgr.cols, CV_8UC3);
+  net_->blend(cv_img_bgr, 1, mask_bgr, 0.5, alpha_blend, verbose_);
+  sensor_msgs::ImagePtr blend_msg =
+      cv_bridge::CvImage(img_msg->header, "bgr8", alpha_blend).toImageMsg();
+  alpha_blend_publisher_.publish(blend_msg);
 
   // Echo the image as bgr
   sensor_msgs::ImagePtr bgr_msg =
