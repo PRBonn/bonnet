@@ -158,4 +158,27 @@ retCode Bonnet::color(const cv::Mat& mask, cv::Mat& color, const bool verbose) {
   return CNN_OK;
 }
 
+/**
+   * @brief      Blend image with color mask
+   *
+   * @param[in]  img         Image being inferred
+   * @param[in]  alpha       Constant for image
+   * @param[in]  mask        Color mask from CNN
+   * @param[in]  beta        Constant for color mask
+   * @param[out] blend       Output blend
+   * @param[in]  verbose     Verbose output? (such as time to run)
+   *
+   * @return     Exit code
+   */
+retCode Bonnet::blend(const cv::Mat& img, const float& alpha,
+                      const cv::Mat& mask, const float& beta, cv::Mat& blend,
+                      const bool verbose) {
+  retCode status = _net->blend(img, alpha, mask, beta, blend, verbose);
+  if (status != CNN_OK) {
+    std::cerr << "Failed to blend result of CNN." << std::endl;
+    return CNN_FATAL;
+  }
+  return CNN_OK;
+}
+
 } /* namespace bonnet */

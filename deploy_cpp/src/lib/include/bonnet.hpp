@@ -86,6 +86,21 @@ class Bonnet {
   retCode color(const cv::Mat& mask, cv::Mat& color,
                 const bool verbose = false);
 
+  /**
+   * @brief      Blend image with color mask
+   *
+   * @param[in]  img         Image being inferred
+   * @param[in]  alpha       Constant for image
+   * @param[in]  mask        Color mask from CNN
+   * @param[in]  beta        Constant for color mask
+   * @param[out] blend       Output blend
+   * @param[in]  verbose     Verbose output? (such as time to run)
+   *
+   * @return     Exit code
+   */
+  retCode blend(const cv::Mat& img, const float& alpha, const cv::Mat& mask,
+                const float& beta, cv::Mat& blend, const bool verbose);
+
  private:
   std::string _path;     // path to frozen directory
   std::string _backend;  // backend to use (tf = TensorFlow, trt = TensorRT)

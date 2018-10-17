@@ -1,7 +1,8 @@
 # inputs
-image_topic: /kitti/camera_color_left/image_raw
+image_topic: /image_view/output
 
 # outputs
 bgr_topic: /bonnet/bgr
 mask_topic: /bonnet/mask
 color_mask_topic: /bonnet/color_mask
+alpha_blend_topic: /bonnet/alpha_blend

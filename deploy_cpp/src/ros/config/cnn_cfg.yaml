@@ -1,4 +1,4 @@
 model_path: "/home/tano/Desktop/frozen_trial"
 device: "/gpu:0"
 verbose: true
-backend: "tf" # tf (tensorflow, cpu or gpu mode) or trt (TensorRT nvidia gpu)
+backend: "trt" # tf (tensorflow, cpu or gpu mode) or trt (TensorRT nvidia gpu)

@@ -102,6 +102,22 @@ class Net {
                 const bool verbose = false);
 
   /**
+   * @brief      Blend image with color mask
+   *
+   * @param[in]  img         Image being inferred
+   * @param[in]  alpha       Constant for image
+   * @param[in]  color_mask  Color mask from CNN
+   * @param[in]  beta        Constant for color mask
+   * @param[out] blend       Output blend
+   * @param[in]  verbose     Verbose output? (such as time to run)
+   *
+   * @return     Exit code
+   */
+  retCode blend(const cv::Mat& img, const float& alpha,
+                const cv::Mat& color_mask, const float& beta,
+                cv::Mat& blend, const bool verbose = false);
+
+  /**
    * @brief      Set verbosity level for backend execution
    *
    * @param[in]  verbose  True is max verbosity, False is no verbosity.

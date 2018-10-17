@@ -58,7 +58,7 @@ If you only want to deploy a model without the dependencies of the python sectio
 
 #### Standalone examples
 
-We use catkin tools. These are example files to check the usage of your frozen model.
+We use catkin tools. These are example files to check the usage of your frozen models and your tensorflow install.
 
 ###### Build
 
