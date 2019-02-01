@@ -130,17 +130,15 @@ The pretrained models with a specific dataset keep the copyright of such dataset
 If you use our framework for any academic work, please cite its [paper](https://arxiv.org/abs/1802.08960).
 
 ```
-@article{milioto2018arxiv,
-   author = {A. Milioto and C. Stachniss},
-    title = "{Bonnet: An Open-Source Training and Deployment Framework for Semantic Segmentation in Robotics using CNNs}",
-  journal = {ArXiv e-prints},
-archivePrefix = "arXiv",
-   eprint = {1802.08960},
- primaryClass = "cs.RO",
- keywords = {Computer Science - Robotics, Computer Science - Computer Vision and Pattern Recognition},
-     year = 2018,
-    month = feb,
-      url = {https://arxiv.org/abs/1802.08960}
+@InProceedings{milioto2019icra,
+author = {A. Milioto and C. Stachniss},
+title = {{Bonnet: An Open-Source Training and Deployment Framework for Semantic Segmentation in Robotics using CNNs}},
+booktitle = {Proc. of the IEEE Intl. Conf. on Robotics \& Automation (ICRA)},
+year = 2019,
+note = {Accepted for publication},
+url = {https://arxiv.org/abs/1802.08960},
+codeurl = {https://github.com/Photogrammetry-Robotics-Bonn/bonnet},
+videourl = {https://www.youtube.com/watch?v=tfeFHCq6YJs},
 }
 ```
 
