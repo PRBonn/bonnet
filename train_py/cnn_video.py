@@ -1,6 +1,6 @@
 #!/usr/bin/python3
 
-# Copyright 2017 Andres Milioto. All Rights Reserved.
+# Copyright 2017 Andres Milioto, Cyrill Stachniss. All Rights Reserved.
 #
 #  This file is part of Bonnet.
 #
