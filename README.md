@@ -4,6 +4,8 @@
 
 By [Andres Milioto](http://www.ipb.uni-bonn.de/people/andres-milioto/) @ University of Bonn.
 
+**__(for the new Pytorch version, go [here](https://github.com/PRBonn/bonnetal))__**
+
 ![Image of cityscapes](https://image.ibb.co/i5tEQR/CITY.png)
 Cityscapes Urban Scene understanding.
 - [Standalone Video Predictor - 512x256px](https://youtu.be/RXK_eYO_i08)
@@ -173,6 +175,10 @@ Special thanks to [Philipp Lottes](http://www.ipb.uni-bonn.de/people/philipp-lot
 for all the work shared during the last year, and to [Olga Vysotka](http://www.ipb.uni-bonn.de/people/olga-vysotska/) and
 [Susanne Wenzel](http://www.ipb.uni-bonn.de/people/susanne-wenzel/) for beta testing the 
 framework :)
+
+## Acknowledgements
+
+This work has partly been supported by the German Research Foundation under Germany's Excellence Strategy, EXC-2070 - 390732324 (PhenoRob). We also thank NVIDIA Corporation for providing a Quadro P6000 GPU partially used to develop this framework.
 
 ## TODOs
 
