@@ -7,4 +7,4 @@ colorama==0.3.9
 opencv_python==3.4.0.12
 sk_video==1.1.9
 tensorflow==1.7.0
-PyYAML==3.12
+PyYAML==5.4
